@@ -1,0 +1,205 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/beadCrochetApp.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+
+  <body>
+
+  <div class="container">
+    <span class="link">
+     <a href="https://www.routledge.com/Crafting-Conundrums-Puzzles-and-Patterns-for-the-Bead-Crochet-Artist/Baker-Goldstine/p/book/9781466588486" target="_blank">
+<!--<div class="photobox box1"><img src="K20387_Cover_front4x6.jpg" style="width:380px;height:540px;position:absolute;left:985px;right:0px;top:10px;"> -->
+       <div class="photobox box1"><img src="K20387_Cover_front4x6.jpg" style="width:285px;height:405px;position:absolute;left:963px;right:0px;top:10px;">
+       </div>
+        </span>
+      </a>
+  </div>
+
+<!--
+  <div class="container2">
+      W3Docs
+      <a href="https://www.w3docs.com/">
+        <span class="link"></span>
+      </a>
+    </div>
+-->
+
+    <div>
+      <div class="InputParams" id="RepeatCirc">
+<!-- Note hardwired repeat and circumference values need to be changed both here and in JS file too, for changes to work right. -->
+        <input type="number" style="color:white;background-color:#003399;width:70px;" id="fREPEAT" name="fREPEAT" value="57" >
+        <input type="button" style="color:white;background-color:#003399; margin-right:10px; min-width:80px" id="lockButton" value="LOCK"></input>
+        <br />
+        <label for="fREPEAT" style="color:white">REPEAT</label>
+
+        <br />
+        <br />
+
+        <input type="number" style="color:white;background-color:#003399;width:70px;;" id="fCircumference" name="fCircumference" value="7" >
+        <br />
+        <label for="fCircumference" style="color:white">CIRCUMFERENCE</label>
+      </div>
+
+      <div class="InputParams" id="OutputTwist">
+        <!--<input type="text" style="color:white;background-color:#003399;" id="fOutputFilename" name="fOutputFilename" value="outfile">
+        <br />
+        <label for="fOutputFilename" style="color:white">OUTPUT FILENAME</label> -->
+        <input type="file" style="color:white;background-color:#003399;width:200px;" id="file-selector" accept=".txt">
+        <br />
+        <label for="file-selector" style="color:white">SELECT FILE TO LOAD</label>
+        <br />
+        <!--<p class="content"></p> -->
+        <br />
+
+        <input type="number" style="color:white;background-color:#003399;width:70px;" id="fTwist" name="fTwist" value="0">
+        <br />
+        <label for="fTwist" style="color:white">TWIST</label>
+
+    <!--    <input type="file" onchange="previewFile()"><br>
+        <p class="content"></p> -->
+
+      </div>
+      <br />
+      <br />
+
+      <div class="InputParams" id="ColorPicker">
+        <label for="colorpicker" style="color:white">COLOR PICKER:</label>
+        <input type="color" id="colorpicker" value="#257b98">
+        <input type="button" style="color:white;background-color:#003399;" value="ADD"></input>
+      </div>
+
+<!-- create a spot for the bead plane pattern and the 3D rope, which we will later fill in dynamically-->
+      <div style="position:absolute;right:0px;top:10px;width:72%;height:100%;">
+        <div class="beadplane" style="position:absolute;left:0px;" id="BP">
+          </div>
+
+<!--So with a lot of hacking I came up with this double wrapper scheme for managing the masking of the simulated rope.
+The outermost wrapper is what actually does the masking, with width set to a baseline of 32 for a 3-around and increasing by 7 with
+each increment of the circumference (so 4-around is 39, 5-around is 46, etc.).  Simultaneously, the middle div id=ROPEWRAPPER
+has to have its width adjusted with each change in the circumference, too.  Only it goes from a baseline of 61 for a 3-around,
+increasing by 15 with each increment of the circumference.  So 76 for 4-around, 91 for 5-around, etc.
+It's not clear to me why the increment is 15 and not 14, which is the bead diameter set in bead styles in the JS file.
+I've left the background colors in for now for debugging, but these should be removed or made gray eventually.
+I suspect I will need to make the vertical layout of the rope wider to get the twist function to work, in which
+case I will need to change the middle div to use a larger baseline than 61 for a 3-around to whatever is the full width of the
+multiple tilings of the vertical layout...  Note that the increments here are related to the bead diameter of 14 pixels.
+If that changes, this will not work properly any more, so I should set bead diameter to a fixed constant somewhere.
+Right now I have these set to 121 and 59, the correct numbers for a 7-around, which is what we initialize to.
+The overflow-x setting is what's causing the div borders to act like a mask.  Maybe there is a better way to do this...
+Also, the numbers are ever so slightly off, which is annoying.
+-->
+                                        <!-- width:59px;height:97% -->
+      <div style="position:absolute;right:0px;width:59px;height:97%; margin-right: 20px;
+                  overflow-x:hidden; background-color:lightblue;" id="OuterROPEWRAPPER">
+                                                                                                          <!-- width:121px; -->
+         <div class="horizontal-center" style="position:relative;left:50%;top:50%;transform: translate(-50%, -50%); width:121px;height:100%;
+                   overflow:hidden; background-color:#cccccc;" id="ROPEWRAPPER">
+  <!-- overflow or overflow-x ? -->
+          <div class="ropeIllustration" style="white-space:nowrap; margin-left: 6px; margin-top: -10px;" id="ROPE">
+
+<!--
+This is the end of the section containing the divs for the simulated rope.
+-->
+       </div>
+      </div>
+    </div>
+
+      </div>
+
+      <br />
+
+    <div class="color-picker" style="margin:10px;">
+		    <div class="select-color color-white not-selected" style="background-color:white;">
+		      </div>
+		    <div class="select-color color-red not-selected" style="background-color:red;">
+		      </div>
+		    <div class="select-color color-green not-selected" style="background-color:green;">
+		      </div>
+        <div class="select-color color-blue not-selected" style="background-color:blue;">
+		      </div>
+        <div class="select-color color-black not-selected" style="background-color:black;">
+  		     </div>
+        <div class="select-color color-lightgreen not-selected" style="background-color:#00ff00;">
+     		    </div>
+        <div class="select-color color-yellow not-selected" style="background-color:#ffff00;">
+            </div>
+        <div class="select-color color-aqua not-selected" style="background-color:#02caca;">
+        </div>
+          <br />
+        <div class="select-color color-tan not-selected" style="background-color: #ffd700;"> <!--"#eecf91;"> -->
+         		</div>
+        <div class="select-color color-brown not-selected" style="background-color:#804000;">
+            </div>
+        <div class="select-color color-orange not-selected" style="background-color:#ff9933;">
+            </div>
+        <div class="select-color color-cream not-selected" style="background-color:#fff9cc;">
+            </div>
+        <div class="select-color color-pink not-selected" style="background-color:#ff99cc;">
+            </div>
+        <div class="select-color color-purple not-selected" style="background-color:#751aff;">
+            </div>
+        <div class="select-color color-lightblue not-selected" style="background-color:#99ebff;">
+            </div>
+        <div class="select-color color-grey not-selected" style="background-color:#8a8f8f;">
+           </div>
+        <br />
+        <div class="select-color color-0 not-selected" id="color-0" style="background-color: #ffffff;">
+         		</div>
+        <div class="select-color color-1 not-selected" id="color-1" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-2 not-selected" id="color-2" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-3 not-selected" id="color-3" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-4 not-selected" id="color-4" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-5 not-selected" id="color-5" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-6 not-selected" id="color-6" style="background-color:#ffffff;">
+            </div>
+        <div class="select-color color-7 not-selected" id="color-7" style="background-color:#ffffff;">
+           </div>
+        <br />
+
+	 </div>
+
+
+   <div class="InputParams" id="Clear">
+     <input type="button" style="color:white;background-color:#003399;" value="CLEAR"></input>
+     <input type="button" style="color:white;background-color:#003399;"value="HELP"></input>
+     <input type="button" style="color:white;background-color:#003399;"value="UNDO"></input>
+     <input type="button" style="color:white;background-color:#003399;"value="REDO"></input>
+     <input type="button" style="color:white;background-color:#003399;"value="SAVE"></input>
+     <input type="button" style="color:white;background-color:#003399;"value="SPIN"></input>
+
+   </div>
+   <br />
+   <br />
+
+   <!--<label for="load-choices" style="color:white;">LOAD:</label> -->
+   <select name="load-choices" style="color:white;background-color:#003399;" id="load-choices">
+     <option value="load">LOAD</option>
+     <option value="harlequin6">Harlequin 6</option>
+     <option value="hexagonalgrid7">Hexagonal Grid 7</option>
+     <option value="mobius6">Mobius 6</option>
+     <option value="equilateraltriangle7">Equilateraltriangle 7</option>
+     <option value="honeycomb9">Honeycomb 9</option>
+     <option value="hexagonalgrid10">Hexagonal Grid 10</option>
+     <option value="userfileplaceholder">Or Choose File Above</option>
+
+   </select>
+
+
+   <br />
+   <br />
+
+   <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
+   <div class="vertical-repeat-pattern" style="margin:10px;" id="VRP">
+   </div>
+
+</div>
+
+	<script src="js/beadCrochetAppDownloadVersion.js" type="text/javascript"></script>
+  </body>
+</html>

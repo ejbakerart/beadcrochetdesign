@@ -1,0 +1,102 @@
+body {
+	background-color:#cccccc;
+}
+
+.InputParams {
+	background-color:'';
+	display:inline-block;
+	margin-right:10px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+
+}
+
+#Clear {
+	vertical-align:top;
+}
+#Help {
+	vertical-align: top;
+}
+
+.select-color {
+	border-width:1px;
+	border-style:solid;
+	border-color:black;
+	width:20px;
+	height:20px;
+	margin:3px;
+	display:inline-block;
+}
+
+.box {
+  /* background-color: #2D2D2D; */
+	background-color: #111111;
+	background: orange;
+  height: 2.2vw;
+  width: 2.2vw;
+  display: inline-block;
+  border-radius: 2.2vw;
+  margin: 0.1vw;
+}
+#stripe {
+  font-size: 0;
+}
+.spacer {
+	/*width: 0.55vw;*/
+	width: 8px; /*###8px
+	/*height: 1.0vw;*/
+	height: 7px; /*###7px*/
+	/*background: purple; uncomment this if you want to see the spacers for debugging */
+	display: inline-block;/* this somehow cause multiples to be on the same horizonatl line */
+	margin-right: 0;
+	margin-left: 0;
+	margin-top: 0;
+
+}
+/* these next two are used for creating a button or div centered vertically within a wrapping div, but I didn't end up using them  */
+.container {
+  height: 30px;
+  position: relative;
+}
+
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.horizontal-center {
+	display: flex;
+  justify-content: center;
+	align-items: center;
+}
+
+.photobox img {
+	object-fit: contain;
+	z-index: -1;
+}
+
+/*.container2 {
+  font-size: 5em;
+  background-color: #a8a8a8;
+  color: white;
+  width: 8em;
+  height: 2em;
+  line-height: 2;
+  text-align: center;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+}*/
+
+.link {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
