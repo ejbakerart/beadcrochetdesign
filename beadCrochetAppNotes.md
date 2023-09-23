@@ -1,4 +1,4 @@
-Notes on the Code:
+# Notes on the Code
 
 At startup,
 
@@ -84,12 +84,13 @@ loses those painted beads.  Note that this approach means that if the circumfere
 Repeat length.  If the user changes both at the same time, we respect both changes???
 
 
-IMPORTANT NOTE REGARDING THE BEAD SIZE ON THE SCREEN:
+## Important Note Regarding the Size of the Bean on the Screen
 Currently the code has been optimized for a bead size of 14px in diameter.  This must be an even number, so that half a
 bead is a whole number.  Otherwise we get weird spacing artifacts on the screen due to (I assume) rounding issues.
 If someone zooms the window, everything gets screwed up -- the code relies on integral numbers for the pixel measurements.
 Bead size is the bead_width global variable.  If you want to try changing this, there are a number of places that currently
 also need to change.
+
 In the CSS file, the definition for the spacer element needs adjustment of its height and width.
 Currently these are set to 8 and 7 and I don't entirely understand why the width needs to be 1px wider than half the bead width.
 I would have expected it to need to be exactly half, since it is used to create the half bead offset in the bead grid.
@@ -97,12 +98,14 @@ In the HTML file, the ropeIllustration, OuterROPEWRAPPER, and ROPEWRAPPER all ne
 the bead_width is changed.  Currently theses are 6px, 59px, and 121px respectively.  Again, I don't entirely understand
 why these numbers work best with the bead size of 14px. One would have to tinker to find the correct values for a
 different bead size.
+
 In the JS file, beadstyles needs to have width and height set to be the same as bead_width.
 Also, bpwidth and bpheight, the size in beads of the bead plane, may need to change to fill the space differently.
 Most importantly, beadwidth is currently 14px and half_bead_width is 7px.
 Also outerbaseline and innerbaseline are set to 32 and 61 respectively. These help control size of the masking
 windows for the simulated rope as the circumference changes. If one were to change the beadsize to 12 instead of 14,
 values of 26 and 52 respectively seem to work kind of okay.
+
 I hope to figure out a better and more flexible approach at some point.  Ideally, one should be able to have
 a single bead width parameter (and maybe height if oval rather than circular) and then changing those would just work
 without changing other things.  Part of this mess is because I don't yet understand how to define a constant that I
