@@ -44,27 +44,12 @@ $(document).ready(function() {
 	let oldBookIndexToColor = new Array(maxRepeat);
 	var num_rope_double_rows = 31;
 	var spin_offset = 0;
-	var bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadstyles below)
+	var bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadCrochetApp.css --bead-width)
 	var half_bead_width = 7;//###7
 	var outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
 	var innerbaseline = 61; //###61...that get adjusted as the circumference changes...
 	var repeatLocked = false; //true if the user locks the repeat length with the lock button
 	var globalString = "initialstring";
-	var beadstyles = {
-		"margin-top": "-3px", //this negative margin helps create the tight circle packing in the hexagonal grid of beads
-		"margin-bottom": "0px",
-		"width": "14px",  //###14Bead width-- critical magic number!!! it's important for width and height to be even, so the spacers can be exactly half a bead wide
-    "height": "14px", //###14and it's also important to use pixels not vx measures to avoid rounding artifacts in the display
-    "background": "white",
-    "border-radius": "100%",
-		"border-width":"1px",
-		"border-style": "solid",
-		"border-color": "grey",
-		"display": "inline-block",
-		"margin-right": "-1px",
-		"margin-left": "0px",
-		"background-color": "white"
-	};
   // remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
 	const mobius6_colours = [6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"];
 	const hexagonalgrid7_colours = [7,"blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"];
@@ -522,7 +507,6 @@ function Clear(r) {
 	for (i=1; i<=r; i++) { //first clear all the beads in the repeat
 		var elem = document.getElementById("bead" + i);
 		//elem.setAttribute('style', 'background-color:white ');//this truncates the other styles so doesn't work
-		Object.assign(elem.style, beadstyles);
 		elem.style["background-color"] = colorClass;
 	}
 	clearBeadplane(colorClass, emptystring); //then clear the beads in the main beadplane
@@ -550,7 +534,7 @@ function createBeadPlane(where, tag) {
 		for(j=1; j<=bpWidth; j++){
 			const newElement = document.createElement('div');
 			//newElement.setAttribute("class", "exampleCircle color-white");
-			Object.assign(newElement.style, beadstyles);
+      newElement.setAttribute("class", "bead");
 			newElement.setAttribute("id", "beadPlane" + tag + beadorder);
 			beadorder++;
 			newElement.setAttribute("value", beadnum);
@@ -693,7 +677,6 @@ function printRepeatInfoToConsole(){
 function clearBeadplane(incolor, tag) {
 	for (i=1; i<=((bpWidth) * (bpHeight)); i++) {
 		var elem = document.getElementById("beadPlane" + tag + i);
-		Object.assign(elem.style, beadstyles); //reset the bead style to the starting clear state
 		elem.style["background-color"] = incolor;
 		//elem.setAttribute('style', 'background-color:white '); this overwrites, so not good to use. lost other stuff
 	}
@@ -740,7 +723,7 @@ function createRepeat(c,r) {
 		for (i=1; i<=(c + 1); i++){ //now put in the beads of the row
 			const newElement = document.createElement('div');
 			//newElement.setAttribute("class", "exampleCircle color-white");
-			Object.assign(newElement.style, beadstyles);
+      newElement.setAttribute("class", "bead");
 			newElement.setAttribute("id", "bead" + j);
 			newElement.setAttribute("value", j); //DO I NEED THIS?  I DON'T THINK IT EVER GETS USED?
 			newElement.onclick = function() {

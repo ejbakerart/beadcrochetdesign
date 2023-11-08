@@ -1,5 +1,6 @@
 body {
 	background-color:#cccccc;
+  /* display: flex; */
 }
 
 .InputParams {
@@ -8,7 +9,6 @@ body {
 	margin-right:10px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
-
 }
 
 #Clear {
@@ -47,16 +47,10 @@ body {
 	/*height: 1.0vw;*/
 	height: 7px; /*###7px*/
 	/*background: purple; uncomment this if you want to see the spacers for debugging */
-	display: inline-block;/* this somehow cause multiples to be on the same horizonatl line */
+	display: inline-block;/* this somehow cause multiples to be on the same horizontal line */
 	margin-right: 0;
 	margin-left: 0;
 	margin-top: 0;
-
-}
-/* these next two are used for creating a button or div centered vertically within a wrapping div, but I didn't end up using them  */
-.container {
-  height: 30px;
-  position: relative;
 }
 
 .vertical-center {
@@ -65,12 +59,6 @@ body {
   top: 50%;
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
-}
-
-.horizontal-center {
-	display: flex;
-  justify-content: center;
-	align-items: center;
 }
 
 .photobox img {
@@ -100,3 +88,83 @@ body {
   left: 0;
   z-index: 1;
 }
+
+.bead {
+  /*
+  Bead width-- critical magic number!!! it's important for width and height to be even, so the spacers can be exactly half a bead wide
+  and it's also important to use pixels not vx measures to avoid rounding artifacts in the display
+  */
+  --bead-width: 14px;
+  margin: -3px -1px 0px 0px; /* negative margins help create the tight circle packing in the hexagonal grid of beads */
+  width: var(--bead-width);
+  height: var(--bead-width);
+  background: white;
+  border: 1px solid grey;
+  border-radius: 100%;
+  display: inline-block;
+}
+
+/* Style specific components by ID */
+
+#BP {
+  min-width: 578px;
+}
+
+#controls-and-vrp {
+  margin-bottom: 0.5rem;
+}
+
+#OuterROPEWRAPPER {
+  width: 400px;
+  min-width: 59px;
+  overflow-x: hidden; 
+}
+
+#ROPEWRAPPER {
+  transform: translate(-50%, 0%);
+  overflow: hidden; 
+}
+
+#ROPE {
+  white-space:nowrap;
+  margin-left: 6px;
+  margin-top: -10px;
+}
+
+/* 
+
+#VRP {
+  margin:10px;
+}
+
+#book-ad {
+
+}
+
+#OuterROPEWRAPPER {
+  position:absolute;
+  right:0px;
+  width:59px;
+  height:97%;
+  margin-right: 20px;
+  background-color:lightblue;
+}
+
+#ROPEWRAPPER {
+  position:relative;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  width:121px;
+  height:100%;
+  overflow:hidden;
+  background-color:#cccccc;
+  display: flex;
+  justify-content: center;
+	align-items: center;
+}
+
+#load-choices {
+  color:white;
+  background-color:#003399;
+} */
