@@ -147,6 +147,8 @@
 
    <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
    <div id="VRP">
+    <input type="button" style="color:white;background-color:#003399;" value="EXPORT VRP"></input>
+    <svg id="VRPsvg" viewBox="0 0 15 15" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
    </div>
 
 
@@ -154,13 +156,10 @@
 
   <!-- create a spot for the bead plane pattern, which we will later fill in dynamically-->
   <div id="BP">
+    <input type="button" style="color:white;background-color:#003399;" value="EXPORT BP"></input>
+    <svg id="BPsvg" viewBox="0.8 0 39 49.5" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
   </div>
 
-  <div id="book-ad">
-    <a href="https://www.routledge.com/Crafting-Conundrums-Puzzles-and-Patterns-for-the-Bead-Crochet-Artist/Baker-Goldstine/p/book/9781466588486" target="_blank">
-      <img src="K20387_Cover_front4x6.jpg" style="width:285px;height:405px;">
-    </a>
-  </div>
 
 <!--So with a lot of hacking I came up with this double wrapper scheme for managing the masking of the simulated rope.
 The outermost wrapper is what actually does the masking, with width set to a baseline of 32 for a 3-around and increasing by 7 with
@@ -183,8 +182,27 @@ Also, the numbers are ever so slightly off, which is annoying.
         <div id="ROPEWRAPPER">
           <!-- overflow or overflow-x ? -->
           <div id="ROPE">
+            <svg id="ROPEsvg" viewBox="0.8 0 39 49.5" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
           </div>
         </div>
+  </div>
+
+  <div class="backdrop" id="about">
+    <div class="dialog">
+      <h1>Bead Crochet Design</h1>
+      <p>This is a beta version of a Bead Crochet Design Tool.
+        It applies ideas from the design framework described in the book 
+        Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist
+        by Ellie Baker and Susan Goldstine, and was created as a supplement to the book.
+        Use at your own risk, since it is still in development,
+        but stay tuned for more info and instructions soon!
+      </p>
+      <div id="book-ad">
+        <a href="https://www.routledge.com/Crafting-Conundrums-Puzzles-and-Patterns-for-the-Bead-Crochet-Artist/Baker-Goldstine/p/book/9781466588486" target="_blank">
+          <img src="K20387_Cover_front4x6.jpg" style="width:285px;height:405px;">
+        </a>
+      </div>
+    </div>
   </div>
 
 	<script src="js/beadCrochetApp.js" type="text/javascript"></script>
