@@ -129,11 +129,31 @@ body {
   display: inline-block;
 }
 
+fieldset {
+  border: 1px solid white;
+  color: white;
+  font-size: smaller;
+  border-radius: 4px;
+}
+
+input[ type="button" ] {
+  color: white;
+  background-color: #003399;
+  border: 2px solid #003399;
+  border-radius: 4px;
+}
+
 /* Style specific components by ID */
 
 #BP {
   min-width: 578px;
   display: inline-block;
+}
+
+#swatch {
+  min-width: 1000px;
+  display: inline-block;
+  overflow: auto;
 }
 
 #controls-and-vrp {

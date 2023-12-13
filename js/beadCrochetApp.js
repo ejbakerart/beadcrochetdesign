@@ -201,6 +201,7 @@ function update() {
 	//since changes the circumference also changes the repeat, but not vice versa.
 	if ((currentCircum != lastCircum) || (currentRepeat != lastRepeat)) {
 		//alert("cleared beadplane");
+    clearSwatch( 'white' );
 		clearBeadplane("white", emptystring); // if there are changes, the beadplanes will have to be repainted, so clear first
 		clearBeadplane("white", "rope"); //we need to clear both the main beadplane and the rope beadplane
 		if (currentCircum > lastCircum) {
@@ -421,6 +422,9 @@ var color;
 		b_index = Number(beadelem.getAttribute("book_index")); //determine its book index
 		color = colorArray[b_index];
     beadelem .setAttribute( 'fill', color );
+
+    // also repaint the swatch
+    paintBeads( b_index, color );
 	}
 	updateRepeatMappingArrays();
 	paintRopeBeadplane(r);
@@ -475,6 +479,8 @@ function drawRepeat(c,r) {
 	else {
 		removeRepeat(lastRepeat); //get rid of the old repeat
 		createRepeat(c,r); //create a new one
+    document .getElementById( "swatch-group" ) .replaceChildren(); // remove the old circles
+    createSwatch();
 		mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
 		updateBeadPlane(c,r); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
 		updateRepeatMappingArrays(); //set up some other arrays that make it easier to go between repeat and beadplane
@@ -490,6 +496,7 @@ function Clear(r) {
 		var elem = document.getElementById("bead" + i);
     elem .setAttribute( 'fill', colorClass );
 	}
+  clearSwatch( colorClass );
 	clearBeadplane(colorClass, emptystring); //then clear the beads in the main beadplane
 	clearBeadplane(colorClass, "rope");//and clear the simulated rope beadplane too
 	updateRepeatMappingArrays();
@@ -500,6 +507,7 @@ function Clear(r) {
 const lineHeight = Math.sqrt( 3 ) / 2;
 
 function beadPlaneClick( x ) {
+  paintBeads( x, colorClass );
   paintCorrespondingBeads(x, colorClass);
   paintCorrespondingBeadplaneBeadToRepeat(x, colorClass);
   updateRepeatMappingArrays();
@@ -525,13 +533,51 @@ function createBeadPlane(where, tag) {
 			newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", j + (i%2 ? 0.5 : 1 ) );
       newCircle.setAttribute( "cy", 1 + lineHeight * ( bpHeight - i ) );
-			if (tag != "rope") { //don't want to make the rope clickable -- only the beadplane is clickable
+			if ( !tag ) { // only the beadplane is clickable
 				newCircle.onclick = () => beadPlaneClick( bpValues[i][j] );
 			}
 			//document.getElementById('BP').appendChild(newElement);
 			document.getElementById(where+"svg").appendChild(newCircle);
 		} //end inner for loop
 	} //end outer for loop
+}
+
+const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead
+
+function createSwatch()
+{
+  const L = lcm( 2*currentCircum+1, currentRepeat );
+  const swatchHeight = 2 * ( L / ( 2*currentCircum+1 ) );
+
+  const svg = document .getElementById( 'swatch-svg' );
+  const viewboxArray = [ 0, 0, currentRepeat*beadDiameter, swatchHeight*lineHeight*beadDiameter ];
+  svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
+  const rect = document .getElementById( 'clip-rect' );
+  rect .setAttribute( 'width', currentRepeat*beadDiameter );
+  rect .setAttribute( 'height', swatchHeight*lineHeight*beadDiameter );
+
+  for ( let i=swatchHeight+1; i>0; i-- ) {
+    // TODO: replace computation of x and bead (copied from updateBeadPlane) with a simple function
+    let x = ( ( (currentCircum*(i-1)) + (Math.floor(((i)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
+    for( let j=1; j<=currentRepeat+1; j++ ) {
+      const newCircle = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
+      let bead = 0;
+      if ((x%currentRepeat) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
+        bead = currentRepeat;
+        x=1;
+      }
+      else {//otherwise not finished with repeat, so set repeat offset to (x mod r) and just increment x for next iteration
+        bead = x % currentRepeat; // setrepeat offset for this bead
+        x++;
+      }
+      newCircle.setAttribute( 'class', 'bead'+bead );
+      newCircle.setAttribute( "r", beadDiameter/2 );
+      newCircle.setAttribute( "fill", 'white' );
+      newCircle.setAttribute( "cx", beadDiameter * (j - 1 + (i%2 ? 0 : 0.5 ) ) );
+      newCircle.setAttribute( "cy", lineHeight * beadDiameter * ( swatchHeight - i + 1 ) );
+      document .getElementById( "swatch-group" ) .appendChild( newCircle );
+    }
+  }
 }
 
 //Update the bead plane info in response to user's change in the repeat length or circumference c.  We need to update
@@ -594,6 +640,14 @@ function paintCorrespondingBeads(x, color){
 		}
 	}
 }
+
+const paintBeads = ( bead, color ) =>
+{
+  for ( const circle of document .querySelectorAll( '.bead'+bead ) ) {
+    circle .setAttribute( 'fill', color );
+  }
+}
+
 //When bead element in the beadplane is painted, paint the corresponding bead in the repeat
 function paintCorrespondingBeadplaneBeadToRepeat(x, color) {
 //It might make more sense to change this so that we set up a mapping array in advance for the repeat, too,
@@ -640,6 +694,13 @@ function clearBeadplane(incolor, tag) {
     const circle = document .getElementById( "svg_beadPlane" + tag + i );
     circle .setAttribute( 'fill', incolor );
 	}
+}
+
+const clearSwatch = ( color ) =>
+{
+  for (let index = 1; index <= currentRepeat; index++) {
+    paintBeads( index, color );
+  }
 }
 
 // For each bead in the repeat, dynamically create a bead element for it, make it colorable by clicking, and
@@ -689,6 +750,7 @@ function createRepeat(c,r) {
         const beadnumber = newElement .getAttribute('book_index');
         updateRepeatMappingArrays();
         paintCorrespondingBeads(beadnumber, colorClass);
+        paintBeads( beadnumber, colorClass );
         paintRopeBeadplane(r);
         saveToHistory(c, r, bookIndexToColor);
         remaining_redos = 0;
@@ -1193,6 +1255,7 @@ function setup() {
 	mappingFunction(startcircum, startrepeat);
 	repeatCreated = true;
 	createBeadPlane('BP', emptystring);
+  createSwatch();
 	updateBeadPlane(startcircum, startrepeat);
 	updateRepeatMappingArrays();
 	createBeadPlane("ROPE", "rope");
@@ -1220,6 +1283,17 @@ function setup() {
 					update();
 		   }
 	});
+
+  document .getElementById( 'export-vrp' ) .addEventListener( 'click', () => {
+    exportFile( document .getElementById( 'VRPsvg' ) .outerHTML );
+  } );
+  document .getElementById( 'export-svg' ) .addEventListener( 'click', () => {
+    exportFile( document .getElementById( 'BPsvg' ) .outerHTML );
+  } );
+  document .getElementById( 'export-swatch' ) .addEventListener( 'click', () => {
+    exportFile( document .getElementById( 'swatch-svg' ) .outerHTML );
+  } );
+
 	// watch out for the async in here that Mike made me put in to get the getNewFileHandle code to work
   $("input").on("click", async function(){
 		// something was mouse clicked
@@ -1244,12 +1318,6 @@ function setup() {
 			case 'ADD':
 				addToPalette(colorPickerColor);
 				break;
-      case 'EXPORT VRP':
-        exportFile( document .getElementById( 'VRPsvg' ) .outerHTML );
-        break;
-      case 'EXPORT BP':
-        exportFile( document .getElementById( 'BPsvg' ) .outerHTML );
-        break;
       case 'SAVE':
 				//alert('SAVE currently downloads the pattern file to your download directory. We are working on an a better system. In the meantime, you might want to rename the downloaded file and save it elsewhere.  It can be reloaded later with the File Load button. You can also try taking a screen shot, but that is not a reloadable file!');
 				var contents = JSON.stringify(repeatHistory[historyIndex]);
@@ -1276,6 +1344,20 @@ function setup() {
 		//or a painted bead, so call the update function
 		update();
 	})
+}
+
+const lcm = ( num1, num2 ) =>
+{
+  let min = (num1 > num2) ? num1 : num2;
+
+  // while loop
+  while (true) {
+      if (min % num1 == 0 && min % num2 == 0) {
+          console.log(`The LCM of ${num1} and ${num2} is ${min}`);
+          return min;
+      }
+      min++;
+  }
 }
 
 
