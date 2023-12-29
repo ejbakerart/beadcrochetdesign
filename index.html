@@ -29,11 +29,12 @@
     <link rel="canonical"      href="https://ejbakerart.github.io/beadcrochetdesign/">
 
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="js/beadCrochetApp.js" type="module"></script>
   </head>
 
 <body>
 
+<div id="central">
   <div id="navbar">
     <h1>Bead Crochet Design</h1>
     <input type="button" value="HELP"></input>
@@ -64,55 +65,55 @@
       <input type="color" id="colorpicker" value="#257b98">
       <input type="button" value="ADD"></input>
       <div class="color-picker" style="margin:10px;">
-        <div class="select-color color-white not-selected" style="background-color:white;">
+        <div class="select-color" style="background-color:#C4A3F5;">
           </div>
-        <div class="select-color color-red not-selected" style="background-color:red;">
+        <div class="select-color" style="background-color:red;">
           </div>
-        <div class="select-color color-green not-selected" style="background-color:green;">
+        <div class="select-color" style="background-color:green;">
           </div>
-        <div class="select-color color-blue not-selected" style="background-color:blue;">
+        <div class="select-color" style="background-color:blue;">
           </div>
-        <div class="select-color color-black not-selected" style="background-color:black;">
+        <div class="select-color" style="background-color:black;">
             </div>
-        <div class="select-color color-lightgreen not-selected" style="background-color:#00ff00;">
+        <div class="select-color" style="background-color:#00ff00;">
               </div>
-        <div class="select-color color-yellow not-selected" style="background-color:#ffff00;">
+        <div class="select-color" style="background-color:#ffff00;">
             </div>
-        <div class="select-color color-aqua not-selected" style="background-color:#02caca;">
+        <div class="select-color" style="background-color:#02caca;">
         </div>
           <br />
-        <div class="select-color color-tan not-selected" style="background-color: #ffd700;"> <!--"#eecf91;"> -->
+        <div class="select-color" style="background-color: #ffd700;"> <!--"#eecf91;"> -->
               </div>
-        <div class="select-color color-brown not-selected" style="background-color:#804000;">
+        <div class="select-color" style="background-color:#804000;">
             </div>
-        <div class="select-color color-orange not-selected" style="background-color:#ff9933;">
+        <div class="select-color" style="background-color:#ff9933;">
             </div>
-        <div class="select-color color-cream not-selected" style="background-color:#fff9cc;">
+        <div class="select-color" style="background-color:#fff9cc;">
             </div>
-        <div class="select-color color-pink not-selected" style="background-color:#ff99cc;">
+        <div class="select-color" style="background-color:#ff99cc;">
             </div>
-        <div class="select-color color-purple not-selected" style="background-color:#751aff;">
+        <div class="select-color" style="background-color:#751aff;">
             </div>
-        <div class="select-color color-lightblue not-selected" style="background-color:#99ebff;">
+        <div class="select-color" style="background-color:#99ebff;">
             </div>
-        <div class="select-color color-grey not-selected" style="background-color:#8a8f8f;">
+        <div class="select-color" style="background-color:#8a8f8f;">
             </div>
         <br />
-        <div class="select-color color-0 not-selected" id="color-0" style="background-color: #ffffff;">
+        <div class="select-color" id="color-0" style="background-color: #ffffff;">
               </div>
-        <div class="select-color color-1 not-selected" id="color-1" style="background-color:#ffffff;">
+        <div class="select-color" id="color-1" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-2 not-selected" id="color-2" style="background-color:#ffffff;">
+        <div class="select-color" id="color-2" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-3 not-selected" id="color-3" style="background-color:#ffffff;">
+        <div class="select-color" id="color-3" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-4 not-selected" id="color-4" style="background-color:#ffffff;">
+        <div class="select-color" id="color-4" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-5 not-selected" id="color-5" style="background-color:#ffffff;">
+        <div class="select-color" id="color-5" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-6 not-selected" id="color-6" style="background-color:#ffffff;">
+        <div class="select-color" id="color-6" style="background-color:#ffffff;">
             </div>
-        <div class="select-color color-7 not-selected" id="color-7" style="background-color:#ffffff;">
+        <div class="select-color" id="color-7" style="background-color:#ffffff;">
             </div>
         <br />
 
@@ -149,23 +150,7 @@
     <legend>Bead Plane</legend>
     <svg id="BPsvg" viewBox="0.8 0 39 49.5" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
     <input type="button" id="export-svg" value="Export SVG"></input>
-  </fieldset>
-
-  <!-- create a spot for the bead plane pattern, which we will later fill in dynamically-->
-  <fieldset id="swatch">
-    <legend>Fabric Swatch</legend>
-    <svg id="swatch-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
-      <!-- width and height 99s will be adjusted dynamically, above and below -->
-      <defs>
-        <clipPath id="clip">
-          <rect id="clip-rect" width="99" height="99" />
-        </clipPath>
-      </defs>
-      <g id="swatch-group" clip-path="url(#clip)" >
-        <!-- bead circles added here dynamically-->
-      </g>
-    </svg>
-    <input type="button" id="export-swatch" value="Export SVG"></input>
+    <input type="button" id="tile-button" value="Show Rectangular Tile"></input>
   </fieldset>
 
 
@@ -187,6 +172,7 @@ Also, the numbers are ever so slightly off, which is annoying.
 
   <!-- create a spot for the 3D rope, which we will later fill in dynamically-->
   <fieldset id="OuterROPEWRAPPER" >
+    <legend>Rope Preview</legend>
     <input type="number" id="fTwist" name="fTwist" value="0">
     <label for="fTwist" style="color:white">TWIST</label>
     <input type="button" value="SPIN"></input>
@@ -197,6 +183,28 @@ Also, the numbers are ever so slightly off, which is annoying.
           </div>
         </div>
   </fieldset>
+
+</div> <!-- end of "central" -->
+
+  <div class="backdrop hidden" id="tile-backdrop">
+    <div id="tile">
+      <fieldset>
+        <legend>Rectangular Tile</legend>
+        <svg id="tile-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
+          <!-- width and height 99s will be adjusted dynamically, above and below -->
+          <defs>
+            <clipPath id="clip">
+              <rect id="clip-rect" width="99" height="99" />
+            </clipPath>
+          </defs>
+          <g id="tile-group" clip-path="url(#clip)" >
+            <!-- bead circles added here dynamically-->
+          </g>
+        </svg>
+        <input type="button" id="export-tile" value="Export SVG"></input>
+      </fieldset>
+    </div>
+  </div>
 
   <div class="backdrop" id="about">
     <div class="dialog">
@@ -216,6 +224,5 @@ Also, the numbers are ever so slightly off, which is annoying.
     </div>
   </div>
 
-	<script src="js/beadCrochetApp.js" type="text/javascript"></script>
 </body>
 </html>

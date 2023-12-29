@@ -1,15 +1,17 @@
 //See beadCrochetAppNotes for an important note regarding parameters controlling the bead size on the screen.
 
-$(document).ready(function() {
-	var colorClass = 'white'; //this is the currently selected palette color, initialized to white
+  let colorElement = document .querySelector( '.select-color' ); // returns the first
+	let colorClass = colorElement.style[ 'background-color' ];
+  colorElement.classList .add( 'selected-color' );
+
 	var colorPickerColor = "#257b98"; //gets set by the interactive color picker.
+
 	var startcircum = 7; //the initially set parameters for the circumference and repeat, the
 	var startrepeat = 57; //hard wiring has to be changed in the html file too if they are changed
 	var currentRepeat = startrepeat;
 	var currentCircum = startcircum;
 	var lastRepeat = 0;
 	var lastCircum = 0;
-	var lastTwist = 0;
 	var currentTwist = 0;
 	var colorpicker = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"];
 	var nextColor = -1; //the index into colorpicker arrays -- gets initialized to 0 first time it is used
@@ -28,7 +30,6 @@ $(document).ready(function() {
 	var maxCircum = 20; //the maximum circumference choice allowed
 	var minRepeat = 2; //the minimum length of the repeat allowed
 	var maxRepeat = 500; //the maximum length of the repeat allowed.
-	var repeatCreated = false; //we haven't yet created the Repeat
 	var arrayheight = bpHeight + 1; //The 2D array for the beadplane info
 	var arraywidth = bpWidth + 1;
 	var emptystring = "";
@@ -58,90 +59,13 @@ $(document).ready(function() {
 	var userfile_colours = []; //gets filled in when the user loads a pattern file
 	const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
 	/* if one of the color choices is clicked on, change colorClass to its color */
-	$('.select-color').click(function(){
-		var selectedColor = $(this).attr('class');
-		/* change all the color choices to have a thin border */
-		$('.select-color').css({"border-color":"black","border-width":"1px","margin":"3px"});
-		/* then change this one to have a thick border, indicating it has been selected */
-		/* and reduce the margin smaller to accommodate the larger border, so the div doesn't jump on the page when changed.*/
-		$(this).css({"border-color":"black","border-width":"3px","margin":"1px"});
-		switch (selectedColor) {
-			case "select-color color-green not-selected":
-				colorClass = 'green';
-				break;
-			case "select-color color-lightgreen not-selected":
-					colorClass = '#00ff00';
-					break;
-			case "select-color color-red not-selected":
-				colorClass = 'red';
-				break;
-			case "select-color color-blue not-selected":
-				colorClass = 'blue';
-				break;
-			case "select-color color-white not-selected":
-				colorClass = 'white';
-				break;
-			case "select-color color-black not-selected":
-				colorClass = 'black';
-				break;
-			case "select-color color-yellow not-selected":
-				colorClass = '#ffff00';
-				break;
-			case "select-color color-aqua not-selected":
-				colorClass = '#02caca';
-				break;
-			case "select-color color-tan not-selected":
-				colorClass = '#ffd700'; //'#eecf91';
-				break;
-			case "select-color color-brown not-selected":
-				colorClass = '#804000';
-				break;
-			case "select-color color-orange not-selected":
-				colorClass = '#ff9933';
-				break;
-			case "select-color color-cream not-selected":
-				colorClass = '#fff9cc';
-				break;
-			case "select-color color-pink not-selected":
-				colorClass = '#ff99cc';
-				break;
-			case "select-color color-purple not-selected":
-				colorClass = '#751aff';
-				break;
-			case "select-color color-lightblue not-selected":
-				colorClass = '#99ebff';
-				break;
-			case "select-color color-grey not-selected":
-				colorClass = '#8a8f8f';
-				break;
-			case "select-color color-0 not-selected":
-				colorClass = colorpicker[0];
-				break;
-			case "select-color color-1 not-selected":
-				colorClass = colorpicker[1];
-				break;
-			case "select-color color-2 not-selected":
-				colorClass = colorpicker[2];
-				break;
-			case "select-color color-3 not-selected":
-				colorClass = colorpicker[3];
-				break;
-			case "select-color color-4 not-selected":
-				colorClass = colorpicker[4];
-				break;
-			case "select-color color-5 not-selected":
-				colorClass = colorpicker[5];
-				break;
-			case "select-color color-6 not-selected":
-				colorClass = colorpicker[6];
-					break;
-			case "select-color color-7 not-selected":
-					colorClass = colorpicker[7];
-					break;
-			}
-			$(this).removeClass('not-selected');
-			$(this).siblings().addClass('not-selected');
+  document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", (e) => {
+    colorClass = el.style[ 'background-color' ];
+    colorElement.classList .remove( 'selected-color' );
+    el.classList .add( 'selected-color' );
+    colorElement = el;
 	})
+);
 
 //save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
 //or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
@@ -150,7 +74,7 @@ function saveToHistory(c,r, repeat_array){
 	var a = [];
 	a[0]=c;//save the circumfernce in the 0th element of a new array, since we don't use that slot for the repeat data
 
-	for (i=1; i<=r; i++){ //save the current repeat state to the new array starting at index 1
+	for ( let i=1; i<=r; i++){ //save the current repeat state to the new array starting at index 1
 		a[i]=repeat_array[i];
 	}
 	historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit); //advance the historyIndex by 1 to a new slot
@@ -167,7 +91,7 @@ function saveToHistory(c,r, repeat_array){
 
 //Get rid of all the bead elements in the old repeat in preparation for creating a new one with new parameters.
 function removeRepeat(r) {
-	for (i=1; i<=r; i++) {
+	for ( let i=1; i<=r; i++) {
 		var elem = document.getElementById("bead" + i);
 		document.getElementById('VRPsvg').removeChild(elem);
 	}
@@ -201,7 +125,7 @@ function update() {
 	//since changes the circumference also changes the repeat, but not vice versa.
 	if ((currentCircum != lastCircum) || (currentRepeat != lastRepeat)) {
 		//alert("cleared beadplane");
-    clearSwatch( 'white' );
+    clearTile( 'white' );
 		clearBeadplane("white", emptystring); // if there are changes, the beadplanes will have to be repainted, so clear first
 		clearBeadplane("white", "rope"); //we need to clear both the main beadplane and the rope beadplane
 		if (currentCircum > lastCircum) {
@@ -233,7 +157,6 @@ function update() {
 			else if (twist.value < -30) {
 				twist.value = -30;
 			}
-		lastTwist = currentTwist;
 		//console.log("twist is " + twist.value);
 		currentTwist = twist.value;
 		doTwist(currentTwist);
@@ -244,10 +167,10 @@ function repeatGotBigger() {
 	var i = 0;
 	let new_colours = new Array(currentRepeat+1); //need extra slot because we store circum in slot 0 and use 1-n for repeat
 
-	for (i=1; i<=lastRepeat; i++) {
+	for ( let i=1; i<=lastRepeat; i++) {
 		new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
 	}
-	for (i=lastRepeat+1; i<=currentRepeat; i++){ //add new white beads at the end of the saved array
+	for ( let i=lastRepeat+1; i<=currentRepeat; i++){ //add new white beads at the end of the saved array
 		new_colours[i] = "white";
 	}
 	refreshEverything(currentCircum, currentRepeat, new_colours, true);
@@ -258,7 +181,7 @@ function repeatGotSmaller() {
 	var i = 0;
 	let new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
 
-	for (i=1; i<=lastRepeat; i++) {
+	for ( let i=1; i<=lastRepeat; i++) {
 		new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
 	}
 	refreshEverything(currentCircum, currentRepeat, new_colours, true);
@@ -271,7 +194,7 @@ function circumferenceChangedRepeatLocked() {
 	lastRepeat = currentRepeat;
 	let new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
 	//copy the bead colors, lopping off the ones on the right of the Repeat to reduce the circumference
-	for (i=1; i<=currentRepeat; i++) {
+	for ( let i=1; i<=currentRepeat; i++) {
 			new_colours[i] = bookIndexToColor[i];
 		}
 	refreshEverything(currentCircum, currentRepeat, new_colours, true);
@@ -366,7 +289,7 @@ function circumferenceGotSmaller() {
 	//copy the bead colors, lopping off the ones on the right of the old Repeat to reduce the circumference
 	//I really hate this code.  There's gotta be a better way to do this!
 	index = 1;
-	for (i=0; i<num_rows; i++) {
+	for ( let i=0; i<num_rows; i++) {
 		for (j=1; j<=(lastCircum-delta); j++)  {
 			if(index > (revised_r+1)) {break;}
 			new_colours[index] = bookIndexToColor[index+(delta*i)];
@@ -409,7 +332,7 @@ var color;
 	//console.log("In refresh everything, c, r, and colorArray are " + c + " " + r);
 	//console.log(colorArray);
 	//paint the beadplane with the new array
-	for (i=1; i<=((bpWidth) * (bpHeight)); i++) {
+	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + i );
 		row = Number( circle.getAttribute("row") );
 		col = Number( circle.getAttribute("col") );
@@ -417,13 +340,13 @@ var color;
     circle .setAttribute( 'fill', colorArray[index] );
 	}
 	//and paint the repeat with the new array
-	for (i=1; i<=r; i++) {
+	for ( let i=1; i<=r; i++) {
 		var beadelem = document.getElementById("bead" + i); //get the bead element
 		b_index = Number(beadelem.getAttribute("book_index")); //determine its book index
 		color = colorArray[b_index];
     beadelem .setAttribute( 'fill', color );
 
-    // also repaint the swatch
+    // also repaint the tile
     paintBeads( b_index, color );
 	}
 	updateRepeatMappingArrays();
@@ -479,8 +402,8 @@ function drawRepeat(c,r) {
 	else {
 		removeRepeat(lastRepeat); //get rid of the old repeat
 		createRepeat(c,r); //create a new one
-    document .getElementById( "swatch-group" ) .replaceChildren(); // remove the old circles
-    createSwatch();
+    document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
+    createTile();
 		mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
 		updateBeadPlane(c,r); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
 		updateRepeatMappingArrays(); //set up some other arrays that make it easier to go between repeat and beadplane
@@ -492,11 +415,11 @@ function drawRepeat(c,r) {
 //This function gets called when the Clear button is pushed.  It clears the colors from the beadplane and repeat.
 //It takes the repeat length as an input parameter.
 function Clear(r) {
-	for (i=1; i<=r; i++) { //first clear all the beads in the repeat
+	for ( let i=1; i<=r; i++) { //first clear all the beads in the repeat
 		var elem = document.getElementById("bead" + i);
     elem .setAttribute( 'fill', colorClass );
 	}
-  clearSwatch( colorClass );
+  clearTile( colorClass );
 	clearBeadplane(colorClass, emptystring); //then clear the beads in the main beadplane
 	clearBeadplane(colorClass, "rope");//and clear the simulated rope beadplane too
 	updateRepeatMappingArrays();
@@ -544,19 +467,19 @@ function createBeadPlane(where, tag) {
 
 const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead
 
-function createSwatch()
+function createTile()
 {
   const L = lcm( 2*currentCircum+1, currentRepeat );
-  const swatchHeight = 2 * ( L / ( 2*currentCircum+1 ) );
+  const tileHeight = 2 * ( L / ( 2*currentCircum+1 ) );
 
-  const svg = document .getElementById( 'swatch-svg' );
-  const viewboxArray = [ 0, 0, currentRepeat*beadDiameter, swatchHeight*lineHeight*beadDiameter ];
+  const svg = document .getElementById( 'tile-svg' );
+  const viewboxArray = [ 0, 0, currentRepeat*beadDiameter, tileHeight*lineHeight*beadDiameter ];
   svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   const rect = document .getElementById( 'clip-rect' );
   rect .setAttribute( 'width', currentRepeat*beadDiameter );
-  rect .setAttribute( 'height', swatchHeight*lineHeight*beadDiameter );
+  rect .setAttribute( 'height', tileHeight*lineHeight*beadDiameter );
 
-  for ( let i=swatchHeight+1; i>0; i-- ) {
+  for ( let i=tileHeight+1; i>0; i-- ) {
     // TODO: replace computation of x and bead (copied from updateBeadPlane) with a simple function
     let x = ( ( (currentCircum*(i-1)) + (Math.floor(((i)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
     for( let j=1; j<=currentRepeat+1; j++ ) {
@@ -574,8 +497,8 @@ function createSwatch()
       newCircle.setAttribute( "r", beadDiameter/2 );
       newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", beadDiameter * (j - 1 + (i%2 ? 0 : 0.5 ) ) );
-      newCircle.setAttribute( "cy", lineHeight * beadDiameter * ( swatchHeight - i + 1 ) );
-      document .getElementById( "swatch-group" ) .appendChild( newCircle );
+      newCircle.setAttribute( "cy", lineHeight * beadDiameter * ( tileHeight - i + 1 ) );
+      document .getElementById( "tile-group" ) .appendChild( newCircle );
     }
   }
 }
@@ -593,9 +516,9 @@ function createSwatch()
 //had to be a little careful because array indices started at 0 not 1, which impacted my formula above
 function updateBeadPlane(c, r) {
 	var x = 0;
-	for (row=1; row<=bpHeight; row++){
+	for ( let row=1; row<=bpHeight; row++){
 		x = ( ( (c*(row-1)) + (Math.floor(((row)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
-		for(bead=1; bead<=bpWidth; bead++){
+		for( let bead=1; bead<=bpWidth; bead++){
 			if ((x%r) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
 				bpValues[row][bead] = r;
 				//console.log(row, bead, r);
@@ -614,7 +537,7 @@ function updateBeadPlane(c, r) {
 //Update the painting on the beads in the beadplane that represents the simulated rope.
 function paintRopeBeadplane(r) {
 	var color = 'purple'; //throw in a random color for debugging purposes
-	for (i=1; i<=((bpWidth) * (bpHeight)); i++) {
+	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
 		var rope_elem = document.getElementById("svg_beadPlane" + "rope" + i);
 		let row = Number( rope_elem.getAttribute("row") );
 		let col = Number( rope_elem.getAttribute("col") );
@@ -630,10 +553,10 @@ function paintRopeBeadplane(r) {
 //When bead number x in the repeat is painted, paint all its corresponding beads
 //in the bead plane and its bead in the repeat.  This function takes x and the bead color as input params
 function paintCorrespondingBeads(x, color){
- 	for (i=1; i<=((bpWidth) * (bpHeight)); i++) {
+ 	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + i );
-		row = Number( circle.getAttribute("row") );
-		col = Number( circle.getAttribute("col") );
+		let row = Number( circle.getAttribute("row") );
+		let col = Number( circle.getAttribute("col") );
 		const temp = bpValues[row][col];
 		if (x == temp) { //if this bead in the beadplane corresponds to bead number x in the repeat, paint it
       circle .setAttribute( 'fill', color );
@@ -653,9 +576,9 @@ function paintCorrespondingBeadplaneBeadToRepeat(x, color) {
 //It might make more sense to change this so that we set up a mapping array in advance for the repeat, too,
 //which gives the mappings from bead number to the book_index.  Then we could just look up the book_index instead of
 //having to loop through the entire repeat looking the bead with the correct index.
-	for(i=1; i<=currentRepeat; i++) {
+  for ( let i=1; i<=currentRepeat; i++) {
 		var elem = document.getElementById("bead" + i);
-		index = Number( elem.getAttribute("book_index") );
+		let index = Number( elem.getAttribute("book_index") );
 	  if (x == index) {
       elem .setAttribute( 'fill', color );
 		}
@@ -669,7 +592,7 @@ function paintCorrespondingBeadplaneBeadToRepeat(x, color) {
 //of all of them all the time...?  Not sure it will work, but still needs thought...could try using a range
 //from start to end indices as input parameters?
 function updateRepeatMappingArrays(){
-	for(i=1; i<=currentRepeat; i++) {
+	for ( let i=1; i<=currentRepeat; i++) {
 		var elem = document.getElementById("bead" + i);
 		const color = elem.getAttribute("fill");
     creationIndexToColor[i] = color;
@@ -680,7 +603,7 @@ function updateRepeatMappingArrays(){
 }
 //for debugging use
 function printRepeatInfoToConsole(){
-	for(i=1; i<=currentRepeat; i++) {
+	for ( let i=1; i<=currentRepeat; i++) {
 		var elem = document.getElementById("bead" + i);
 		console.log("bead" + i + " is book_index " + Number(elem.getAttribute("book_index")));
 	}
@@ -690,13 +613,13 @@ function printRepeatInfoToConsole(){
 //beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
 //the rope bead plane.
 function clearBeadplane(incolor, tag) {
-	for (i=1; i<=((bpWidth) * (bpHeight)); i++) {
+	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + tag + i );
     circle .setAttribute( 'fill', incolor );
 	}
 }
 
-const clearSwatch = ( color ) =>
+const clearTile = ( color ) =>
 {
   for (let index = 1; index <= currentRepeat; index++) {
     paintBeads( index, color );
@@ -711,7 +634,9 @@ function createRepeat(c,r) {
 	var indented_row = true;
 	var double_row_length = (2*c)+1;
 	var excess = r % double_row_length;
-	//figure out the length of the top row and whether it is indented
+
+  //figure out the length of the top row and whether it is indented
+  let top_row_length;
 	if (excess > (c+1)) {
 		top_row_length	= excess - (c+1);
 		indented_row = true;
@@ -730,13 +655,13 @@ function createRepeat(c,r) {
 	}
 
 	var j=1;
-	top_row = true;
-	tempcount = 1;
+	let top_row = true;
+	let tempcount = 1;
   let rows = 1;
   let x; // we want last values, to set the svg viewBox
   let y;
 	while (j<r) {
-		for (i=1; i<=(c + 1); i++){ //now put in the beads of the row
+		for ( let i=1; i<=(c + 1); i++ ){ //now put in the beads of the row
 			const newElement = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
 			newElement.setAttribute("id", "bead" + j);
       x = tempcount + (indented_row? 0.5 : 0 );
@@ -788,7 +713,7 @@ function mappingFunction(c,r) {
 	var double_row_length = (2*c)+1;
 	var excess = r % double_row_length;
 	var newIndex = 0;
-	//var oldIndex = 0;
+  let top_row_length;
 
 	//figure out the length of the top row and whether it is indented
 	if (excess > (c+1)) {
@@ -810,7 +735,7 @@ function mappingFunction(c,r) {
 	//console.log("In mappingFunction top row length is " + top_row_length);
 	var top_row_start_index = r - top_row_length + 1;
 	var next_row_start_index = top_row_start_index;
-	for (i=0; i<top_row_length; i++) {
+	for ( let i=0; i<top_row_length; i++) {
 		var elem = document.getElementById("bead" + (i+1));
 		elem.setAttribute("book_index", Number(top_row_start_index + i));
 		//console.log("new index for " + oldIndex + " is " + Number(top_row_start_index + i));
@@ -827,9 +752,9 @@ function mappingFunction(c,r) {
 		next_row_start_index-=c;
 		indented_row = true;
 	}
-	i = top_row_length + 1;
+	let i = top_row_length + 1;
 	while (i<=r) {
-		for (j=1; j<=c+1; j++) {
+		for ( let j=1; j<=c+1; j++) {
 			var elem = document.getElementById("bead" + i);
 			newIndex = next_row_start_index + (j-1);
 			elem.setAttribute("book_index", newIndex);
@@ -912,7 +837,7 @@ function getUserFileColours(selectedFile) {
 	var c_elem = document.getElementById("fCircumference");
 	lastRepeat = currentRepeat;
 	lastCircum = currentCircum;
-	for (i=0; i<= mobius6_colours.length - 1; i++) {
+	for ( let i=0; i<= mobius6_colours.length - 1; i++) {
 		userfile_colours[i] = mobius6_colours[i]; //for now until I figure out how to load the real file
 	}
 	console.log(userfile_colours);
@@ -1251,11 +1176,13 @@ function setup() {
 	const aboutDialog = document.getElementById('about');
   aboutDialog .addEventListener( 'click', () => aboutDialog .className += ' hidden' );
 
+	const tileDialog = document.getElementById( 'tile-backdrop' );
+  tileDialog .addEventListener( 'click', () => tileDialog .className += ' hidden' );
+
   createRepeat(startcircum, startrepeat);
 	mappingFunction(startcircum, startrepeat);
-	repeatCreated = true;
 	createBeadPlane('BP', emptystring);
-  createSwatch();
+  createTile();
 	updateBeadPlane(startcircum, startrepeat);
 	updateRepeatMappingArrays();
 	createBeadPlane("ROPE", "rope");
@@ -1290,15 +1217,18 @@ function setup() {
   document .getElementById( 'export-svg' ) .addEventListener( 'click', () => {
     exportFile( document .getElementById( 'BPsvg' ) .outerHTML );
   } );
-  document .getElementById( 'export-swatch' ) .addEventListener( 'click', () => {
-    exportFile( document .getElementById( 'swatch-svg' ) .outerHTML );
+  document .getElementById( 'export-tile' ) .addEventListener( 'click', () => {
+    exportFile( document .getElementById( 'tile-svg' ) .outerHTML );
+  } );
+
+  document .getElementById( 'tile-button' ) .addEventListener( 'click', () => {
+    tileDialog .className = 'backdrop'; // remove 'hidden'
   } );
 
 	// watch out for the async in here that Mike made me put in to get the getNewFileHandle code to work
-  $("input").on("click", async function(){
+  document.querySelectorAll("input") .forEach( el => el .addEventListener( "click", async (e) => {
 		// something was mouse clicked
-		var clickType = ($(this).attr('value'));
-		//var clickID = ($(this).attr('id'));
+		var clickType = el.getAttribute('value');
 		switch (clickType) {
 			case 'CLEAR':
 				Clear(currentRepeat);
@@ -1343,7 +1273,7 @@ function setup() {
     //if it wasn't any of above buttons, must have been a change to repeat or circum,
 		//or a painted bead, so call the update function
 		update();
-	})
+	}) );
 }
 
 const lcm = ( num1, num2 ) =>
@@ -1360,7 +1290,4 @@ const lcm = ( num1, num2 ) =>
   }
 }
 
-
-$(document).on("ready", setup())
-
-})
+setup();
