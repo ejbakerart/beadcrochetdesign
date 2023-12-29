@@ -34,112 +34,126 @@
 
 <body>
 
-<div id="central">
-  <div id="navbar">
-    <h1>Bead Crochet Design</h1>
-    <input type="button" value="HELP"></input>
+<div id="navbar">
+  <div id="title">
+    <h2>Crafting Conundrums</h2>
+    <h4>Bead Crochet Design Tool</h4>
   </div>
+
+  <div id="file-operations">
+    <input type="file" id="file-selector" accept=".txt">
+    <label for="file-selector">Select File to Load</label>
+    <select name="load-choices" id="load-choices">
+      <option value="load">LOAD</option>
+      <option value="harlequin6">Harlequin 6</option>
+      <option value="hexagonalgrid7">Hexagonal Grid 7</option>
+      <option value="mobius6">Mobius 6</option>
+      <option value="equilateraltriangle7">Equilateraltriangle 7</option>
+      <option value="honeycomb9">Honeycomb 9</option>
+      <option value="hexagonalgrid10">Hexagonal Grid 10</option>
+      <option value="userfileplaceholder">Or Choose File Above</option> 
+    </select>
+    <input type="button" value="Save"></input>
+  </div>
+
+  <div id="about-button">
+    <input type="button" value="About"></input>
+  </div>
+</div>
+
+<div id="central">
 
   <div id="controls-and-vrp">
 
-    <div id="file-operations">
-      <input type="file" style="color:white;background-color:#003399;width:200px;" id="file-selector" accept=".txt">
-      <label for="file-selector" style="color:white">SELECT FILE TO LOAD</label>
-      <br />
-      <input type="button" value="SAVE"></input>
-      <br />
-      <select name="load-choices" id="load-choices">
-        <option value="load">LOAD</option>
-        <option value="harlequin6">Harlequin 6</option>
-        <option value="hexagonalgrid7">Hexagonal Grid 7</option>
-        <option value="mobius6">Mobius 6</option>
-        <option value="equilateraltriangle7">Equilateraltriangle 7</option>
-        <option value="honeycomb9">Honeycomb 9</option>
-        <option value="hexagonalgrid10">Hexagonal Grid 10</option>
-        <option value="userfileplaceholder">Or Choose File Above</option> 
-      </select>
-    </div>
-
-    <div class="InputParams" id="ColorPicker">
-      <label for="colorpicker" style="color:white">COLOR PICKER:</label>
-      <input type="color" id="colorpicker" value="#257b98">
-      <input type="button" value="ADD"></input>
-      <div class="color-picker" style="margin:10px;">
-        <div class="select-color" style="background-color:#C4A3F5;">
-          </div>
-        <div class="select-color" style="background-color:red;">
-          </div>
-        <div class="select-color" style="background-color:green;">
-          </div>
-        <div class="select-color" style="background-color:blue;">
-          </div>
-        <div class="select-color" style="background-color:black;">
-            </div>
-        <div class="select-color" style="background-color:#00ff00;">
-              </div>
-        <div class="select-color" style="background-color:#ffff00;">
-            </div>
-        <div class="select-color" style="background-color:#02caca;">
-        </div>
-          <br />
-        <div class="select-color" style="background-color: #ffd700;"> <!--"#eecf91;"> -->
-              </div>
-        <div class="select-color" style="background-color:#804000;">
-            </div>
-        <div class="select-color" style="background-color:#ff9933;">
-            </div>
-        <div class="select-color" style="background-color:#fff9cc;">
-            </div>
-        <div class="select-color" style="background-color:#ff99cc;">
-            </div>
-        <div class="select-color" style="background-color:#751aff;">
-            </div>
-        <div class="select-color" style="background-color:#99ebff;">
-            </div>
-        <div class="select-color" style="background-color:#8a8f8f;">
-            </div>
-        <br />
-        <div class="select-color" id="color-0" style="background-color: #ffffff;">
-              </div>
-        <div class="select-color" id="color-1" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-2" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-3" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-4" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-5" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-6" style="background-color:#ffffff;">
-            </div>
-        <div class="select-color" id="color-7" style="background-color:#ffffff;">
-            </div>
-        <br />
-
-      </div>
-    </div>
-
-    <div id="undo-redo">
-      <input type="button" value="UNDO"></input>
-      <input type="button" value="REDO"></input>
-    </div>
-
-    <div id="bulk-actions">
-      <input type="button" value="CLEAR"></input>
-    </div>
-
-
-   <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
+    <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
     <fieldset id="VRP">
       <legend>Vertical Repeat</legend>
-      <input type="number" style="width:70px;" id="fREPEAT" name="fREPEAT" value="57" >
-      <input type="button"  id="lockButton" value="LOCK"></input>
-      <label for="fREPEAT" style="color:white">REPEAT</label>
-      <input type="number" style="width:70px;" id="fCircumference" name="fCircumference" value="7" >
-      <label for="fCircumference" style="color:white">CIRCUMFERENCE</label>
+      <div>
+        <label for="fREPEAT">Repeat</label>
+        <input type="number" style="width:70px;" id="fREPEAT" name="fREPEAT" value="57" >
+        <input type="button"  id="lockButton" value="Lock"></input>
+      </div>
+      <div>
+        <label for="fCircumference">Circumference</label>
+        <input type="number" style="width:70px;" id="fCircumference" name="fCircumference" value="7" >
+      </div>
       <svg id="VRPsvg" viewBox="0 0 15 15" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
       <input type="button" id="export-vrp" value="Export SVG"></input>
+    </fieldset>
+
+    <fieldset id="undo-redo">
+      <div>
+        <input type="button" value="Undo"></input>
+        <input type="button" value="Redo"></input>
+      </div>
+    </fieldset>
+
+    <fieldset id="editing">
+      <legend>Bead Color</legend>
+      <div class="InputParams" id="ColorPicker">
+        <label for="colorpicker">Color Picker:</label>
+        <input type="color" id="colorpicker" value="#257b98">
+        <input type="button" value="Add"></input>
+        <div class="color-picker" style="margin:10px;">
+          <div class="select-color" style="background-color:#C4A3F5;">
+            </div>
+          <div class="select-color" style="background-color:red;">
+            </div>
+          <div class="select-color" style="background-color:green;">
+            </div>
+          <div class="select-color" style="background-color:blue;">
+            </div>
+          <div class="select-color" style="background-color:black;">
+              </div>
+          <div class="select-color" style="background-color:#00ff00;">
+                </div>
+          <div class="select-color" style="background-color:#ffff00;">
+              </div>
+          <div class="select-color" style="background-color:#02caca;">
+          </div>
+            <br />
+          <div class="select-color" style="background-color: #ffd700;"> <!--"#eecf91;"> -->
+                </div>
+          <div class="select-color" style="background-color:#804000;">
+              </div>
+          <div class="select-color" style="background-color:#ff9933;">
+              </div>
+          <div class="select-color" style="background-color:#fff9cc;">
+              </div>
+          <div class="select-color" style="background-color:#ff99cc;">
+              </div>
+          <div class="select-color" style="background-color:#751aff;">
+              </div>
+          <div class="select-color" style="background-color:#99ebff;">
+              </div>
+          <div class="select-color" style="background-color:#8a8f8f;">
+              </div>
+          <br />
+          <div class="select-color" id="color-0" style="background-color: #ffffff;">
+                </div>
+          <div class="select-color" id="color-1" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-2" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-3" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-4" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-5" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-6" style="background-color:#ffffff;">
+              </div>
+          <div class="select-color" id="color-7" style="background-color:#ffffff;">
+              </div>
+          <br />
+
+        </div>
+      </div>
+
+
+      <div id="bulk-actions">
+        <input type="button" value="Color All"></input>
+      </div>
     </fieldset>
 
 
@@ -174,8 +188,8 @@ Also, the numbers are ever so slightly off, which is annoying.
   <fieldset id="OuterROPEWRAPPER" >
     <legend>Rope Preview</legend>
     <input type="number" id="fTwist" name="fTwist" value="0">
-    <label for="fTwist" style="color:white">TWIST</label>
-    <input type="button" value="SPIN"></input>
+    <label for="fTwist">Twist</label>
+    <input type="button" value="Spin"></input>
     <div id="ROPEWRAPPER">
           <!-- overflow or overflow-x ? -->
           <div id="ROPE">

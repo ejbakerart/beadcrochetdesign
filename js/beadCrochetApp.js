@@ -1230,39 +1230,38 @@ function setup() {
 		// something was mouse clicked
 		var clickType = el.getAttribute('value');
 		switch (clickType) {
-			case 'CLEAR':
+			case 'Color All':
 				Clear(currentRepeat);
 				break;
-			case 'HELP':
-        aboutDialog .className = 'backdrop'; // remove 'hidden'
+			case 'About':
+        aboutDialog .classList .remove( 'hidden' );
 				break;
 			case 'outfile':
 				alert('outputting files not yet implemented');
 				break;
-			case 'UNDO':
+			case 'Undo':
 				undo();
 				break;
-			case 'REDO':
+			case 'Redo':
 				redo();
 				break;
-			case 'ADD':
+			case 'Add':
 				addToPalette(colorPickerColor);
 				break;
-      case 'SAVE':
-				//alert('SAVE currently downloads the pattern file to your download directory. We are working on an a better system. In the meantime, you might want to rename the downloaded file and save it elsewhere.  It can be reloaded later with the File Load button. You can also try taking a screen shot, but that is not a reloadable file!');
+      case 'Save':
 				var contents = JSON.stringify(repeatHistory[historyIndex]);
 				var filehandle = await getNewFileHandle(); //THESE NEXT TWO LINES WORK GREAT BUT NEED HTTPS SECURITY and ONLY on Chrome and a few other browsers
 				writeFile(filehandle, contents);
 				//FileSave(contents, "ChangeThisFilenameAndSave.txt");//THIS ALTERNATIVE WORKS WITHOUT HTTPS or CHROME BUT USES THE DOWNLOAD APPROACH AND USER HAS TO MOVE THE FILE AND CHANGE THE NAME
 				//writeRepeatToFile(repeatHistory[historyIndex], "/users/ellenbaker/junk/", "test.txt"); //DOESN"T WORK BECAUSE OF REQUIRE
 				break;
-			case 'LOCK': //lock unlock toggle for locking the repeat number when circumference is changed
+			case 'Lock': //lock unlock toggle for locking the repeat number when circumference is changed
 				lockbuttonToggle();
 				break;
-			case 'UNLOCK': //lock unlock toggle for locking the repeat number when circumference is changed
+			case 'Unlock': //lock unlock toggle for locking the repeat number when circumference is changed
 				lockbuttonToggle();
 				break;
-			case 'SPIN':
+			case 'Spin':
 				spin_offset++; //advance the offset in the repeat by one to simulate spinning
 				if (spin_offset == (currentRepeat)) {
 					spin_offset = 0;

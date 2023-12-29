@@ -13,18 +13,8 @@ body {
   box-sizing: border-box;
 }
 
-#root {
-  position: absolute;
-  inset: 0;
-  /* display: grid;
-  grid-template-rows: min-content 1fr; */
-}
 
 /* -------------------------- standard reset ^^ ------------------------------ */
-
-body {
-	background-color:#cccccc;
-}
 
 .backdrop {
   background-color: rgba(0, 0, 0, 0.5);
@@ -54,13 +44,6 @@ body {
 	margin-right:10px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
-}
-
-#Clear {
-	vertical-align:top;
-}
-#Help {
-	vertical-align: top;
 }
 
 .select-color {
@@ -161,19 +144,72 @@ fieldset {
   border-radius: 4px;
 }
 
+label {
+  color: white;
+}
+
+#file-selector {
+  color:white;
+  background-color: rgb(76, 101, 118);
+  width:200px;
+}
+
 input[ type="button" ] {
   color: white;
-  background-color: #003399;
-  border: 2px solid #003399;
+  background-color: rgb(76, 101, 118);
+  border: 2px solid rgb(76, 101, 118);
   border-radius: 4px;
 }
 
 /* Style specific components by ID */
 
-#central {
-  max-width: 75rem;
+body {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: min-content 1fr;
+	background-color:#cccccc;
+}
+
+#navbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr min-content;
+  background-color: rgb(19, 54, 77);
+  padding-inline: 2rem;
+}
+
+#title {
+  color: #cccccc;
+}
+
+#about-button,
+#file-operations {
   margin: auto;
-  border: 1px solid red;
+}
+
+#title h4,
+#title h2 {
+  margin-block-start: 7px;
+  margin-block-end: 10px;
+}
+
+#central {
+  display: grid;
+  grid-template-columns: 3fr 6fr 1fr;
+}
+
+#controls-and-vrp {
+  display: grid;
+  grid-template-rows: min-content min-content 1fr min-content;
+}
+
+#VRP {
+}
+
+#undo-redo {
+  margin-block-start: 0.4rem;
+  display: flex;
+  justify-content: center;
 }
 
 #BP {
@@ -189,11 +225,6 @@ input[ type="button" ] {
   padding: 1rem;
   border: 1px solid black;
   border-radius: 5px;
-}
-
-#controls-and-vrp {
-  margin-bottom: 0.5rem;
-  display: inline-block;
 }
 
 #OuterROPEWRAPPER {
@@ -215,11 +246,6 @@ input[ type="button" ] {
 
 svg {
   max-width: 40rem;
-}
-
-#VRP {
-  width: 20rem;
-  height: 20rem;
 }
 
 #book-ad {
