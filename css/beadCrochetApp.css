@@ -13,6 +13,16 @@ body {
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+}
 
 /* -------------------------- standard reset ^^ ------------------------------ */
 
@@ -161,7 +171,11 @@ input[ type="button" ] {
   border-radius: 4px;
 }
 
-/* Style specific components by ID */
+.right-justify {
+  margin-inline: auto 0;
+}
+
+/* Style specific components by ID  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 body {
   position: fixed;
@@ -196,6 +210,7 @@ body {
 #central {
   display: grid;
   grid-template-columns: 3fr 6fr 1fr;
+  margin: 2px 4px 6px 4px;
 }
 
 #controls-and-vrp {
@@ -212,10 +227,38 @@ body {
   justify-content: center;
 }
 
-#BP {
-  min-width: 578px;
-  display: inline-block;
+/*       bead plane        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+#bp-grid {
+  display: grid;
+  grid-template-rows: minmax(0,95%) min-content;
+  height: 100%;
 }
+
+#bp-main {
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+#bp-scroller {
+  overflow: auto;
+  height: 100%;
+  border: solid black;
+}
+
+#bp-placeholder {
+  width: 640px;
+  height: 700px;
+  background-color: deepskyblue;
+}
+
+#BPsvg {
+  width: 640px;
+}
+
+/*  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 #tile {
   min-width: 1000px;
@@ -228,7 +271,6 @@ body {
 }
 
 #OuterROPEWRAPPER {
-  width: 10rem;
   overflow-x: hidden; 
   display: inline-block;
 }
@@ -242,10 +284,6 @@ body {
   white-space:nowrap;
   margin-left: 6px;
   margin-top: -10px;
-}
-
-svg {
-  max-width: 40rem;
 }
 
 #book-ad {

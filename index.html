@@ -9,18 +9,19 @@
     <meta property="og:type" content="website"/>
 
 
-    <title>Bead Crochet Design</title>
-    <meta property="og:site_name"  content="Bead Crochet Design"/>
-    <meta property="og:title"      content="Bead Crochet Design"/>
-    <meta property="twitter:title" content="Bead Crochet Design"/>
+    <title>Crafting Conundrums</title>
+    <meta property="og:site_name"  content="Crafting Conundrums"/>
+    <meta property="og:title"      content="Crafting Conundrums"/>
+    <meta property="twitter:title" content="Crafting Conundrums"/>
 
     <meta name="author" content="Ellie Baker"/>
+    <meta name="author" content="Scott Vorthmann"/>
   
-    <meta name="description"             content="Supporting app for Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist"/>
-    <meta property="og:description"      content="Supporting app for Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist"/>
-    <meta property="twitter:description" content="Supporting app for Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist"/>
+    <meta name="description"             content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
+    <meta property="og:description"      content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
+    <meta property="twitter:description" content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
 
-    <meta name="keywords" content="bead,crochet,book,crafts,design"/>
+    <meta name="keywords" content="bead,crochet,book,art,mathematics,crafts,design,template,pattern"/>
     
     <meta property="og:image"  content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
     <meta name="twitter:image" content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
@@ -37,7 +38,7 @@
 <div id="navbar">
   <div id="title">
     <h2>Crafting Conundrums</h2>
-    <h4>Bead Crochet Design Tool</h4>
+    <h4>Crafting Conundrums Tool</h4>
   </div>
 
   <div id="file-operations">
@@ -160,11 +161,21 @@
   </div>
 
   <!-- create a spot for the bead plane pattern, which we will later fill in dynamically-->
-  <fieldset id="BP">
+  <fieldset id="bead-plane">
     <legend>Bead Plane</legend>
-    <svg id="BPsvg" viewBox="0.8 0 39 49.5" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
-    <input type="button" id="export-svg" value="Export SVG"></input>
-    <input type="button" id="tile-button" value="Show Rectangular Tile"></input>
+    <div id="bp-grid">
+      <div id="bp-main">
+        <div id="bp-scroller">
+          <!-- <div id="bp-placeholder"></div> -->
+          <svg id="BPsvg" viewBox="0.8 0 39 49.5" width="640px"
+            stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
+        </div>
+      </div>
+      <div class="right-justify">
+        <input type="button" id="export-svg" value="Export SVG"></input>
+        <input type="button" id="tile-button" value="Show Rectangular Tile"></input>
+      </div>
+    </div>
   </fieldset>
 
 
@@ -222,8 +233,8 @@ Also, the numbers are ever so slightly off, which is annoying.
 
   <div class="backdrop" id="about">
     <div class="dialog">
-      <h1>Bead Crochet Design</h1>
-      <p>This is a beta version of a Bead Crochet Design Tool.
+      <h1>Crafting Conundrums</h1>
+      <p>This is a beta version of a Crafting Conundrums Tool.
         It applies ideas from the design framework described in the book 
         Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist
         by Ellie Baker and Susan Goldstine, and was created as a supplement to the book.

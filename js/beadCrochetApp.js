@@ -459,7 +459,6 @@ function createBeadPlane(where, tag) {
 			if ( !tag ) { // only the beadplane is clickable
 				newCircle.onclick = () => beadPlaneClick( bpValues[i][j] );
 			}
-			//document.getElementById('BP').appendChild(newElement);
 			document.getElementById(where+"svg").appendChild(newCircle);
 		} //end inner for loop
 	} //end outer for loop
