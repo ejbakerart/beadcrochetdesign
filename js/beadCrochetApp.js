@@ -1,75 +1,79 @@
 //See beadCrochetAppNotes for an important note regarding parameters controlling the bead size on the screen.
 
-  let colorElement = document .querySelector( '.select-color' ); // returns the first
-	let colorClass = colorElement.style[ 'background-color' ];
-  colorElement.classList .add( 'selected-color' );
+let colorElement = document .querySelector( '.select-color' ); // returns the first
+let colorClass = colorElement.style[ 'background-color' ];
+colorElement.classList .add( 'selected-color' );
 
-	var colorPickerColor = "#257b98"; //gets set by the interactive color picker.
+const colorPickerColor = "#257b98"; //gets set by the interactive color picker.
 
-	var currentCircum = 7;
-	var currentRepeat = 57;
-	var lastRepeat = 0;
-	var lastCircum = 0;
-	var currentTwist = 0;
-	var colorpicker = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"];
-	var nextColor = -1; //the index into colorpicker arrays -- gets initialized to 0 first time it is used
-	var maxColors = colorpicker.length;
-	//UNDO/REDO variables
-	var remaining_undos = -1; //keeps track of how many times we can undo -- will be incremented to 0 when start state is saved
-	var remaining_redos = 0; //keeps track of how many times we can redo -- will be incremented to 1 when first undo occurs
-	var history_limit = 26;  //note: we can save up to history_limit-1 new states because the original state is the first push
-	var repeatHistory = []; //will hold the repeat arrays for prior states for undo/redo. Implented as a circular array
-	var historyIndex = history_limit - 1; //will hold the current index into the repeatHistory array, used for undo/redo
-																		//Because circular array, in first call to saveToHistory, this will be advanced to position 0
-	//The number of UNDO or REDO actions the user can take is limited by the history_limit variable (it is one less than it)
-	var bpWidth = 38;//38
-	var bpHeight = 56;//62  NOTE: THIS MUST BE AN EVEN NUMBER OR POSSIBLY BUGS???
-	var minCircum = 3; //the minimum circumference choice allowed
-	var maxCircum = 20; //the maximum circumference choice allowed
-	var minRepeat = 2; //the minimum length of the repeat allowed
-	var maxRepeat = 500; //the maximum length of the repeat allowed.
-	var arrayheight = bpHeight + 1; //The 2D array for the beadplane info
-	var arraywidth = bpWidth + 1;
-	var emptystring = "";
-	var bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //a 2D array that maps beads in the beadplane
-	//to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
-	//repeat bead number (as the book_index or stringing position in the repeat)
+let currentCircum = 7;
+let currentRepeat = 57;
+let lastRepeat = 0;
+let lastCircum = 0;
+let currentTwist = 0;
+
+const colorpicker = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"];
+let nextColor = -1; //the index into colorpicker arrays -- gets initialized to 0 first time it is used
+const maxColors = colorpicker.length;
+
+//UNDO/REDO variables
+let remaining_undos = -1; //keeps track of how many times we can undo -- will be incremented to 0 when start state is saved
+let remaining_redos = 0; //keeps track of how many times we can redo -- will be incremented to 1 when first undo occurs
+const history_limit = 26;  //note: we can save up to history_limit-1 new states because the original state is the first push
+let repeatHistory = []; //will hold the repeat arrays for prior states for undo/redo. Implented as a circular array
+let historyIndex = history_limit - 1; //will hold the current index into the repeatHistory array, used for undo/redo
+                                  //Because circular array, in first call to saveToHistory, this will be advanced to position 0
+//The number of UNDO or REDO actions the user can take is limited by the history_limit variable (it is one less than it)
+const bpWidth = 38;//38
+const bpHeight = 56;//62  NOTE: THIS MUST BE AN EVEN NUMBER OR POSSIBLY BUGS???
+const minCircum = 3; //the minimum circumference choice allowed
+const maxCircum = 20; //the maximum circumference choice allowed
+const minRepeat = 2; //the minimum length of the repeat allowed
+const maxRepeat = 500; //the maximum length of the repeat allowed.
+const arrayheight = bpHeight + 1; //The 2D array for the beadplane info
+const arraywidth = bpWidth + 1;
+const emptystring = "";
+const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //a 2D array that maps beads in the beadplane
+//to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
+//repeat bead number (as the book_index or stringing position in the repeat)
 
 
-  // This should be the source of truth, not the circles in the VR!
-	let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
-	
-  
-  var spin_offset = 0;
-	var bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadCrochetApp.css --bead-width)
-	var half_bead_width = 7;//###7
-	var outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
-	var innerbaseline = 61; //###61...that get adjusted as the circumference changes...
-	var repeatLocked = false; //true if the user locks the repeat length with the lock button
-	var globalString = "initialstring";
-  // remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
-	const mobius6_colours = [6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"];
-	const hexagonalgrid7_colours = [7,"blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"];
-	const harlequin6_colours = [6,"black","black","black","black","black","black","black","black","black","black","black","black","green","black","black","black","black","black","green","green","black","black","black","black","green","green","green","black","black","black","green","green","green","green","black","black","green","green","green","green","green","black","green","green","green","green","green","green","green","green","green","green","green","green","black","green","green","green","green","green","black","black","green","green","green","green","black","black","black","green","green","green","black","black","black","black","green","green","black","black","black","black","black","green"];
-	const honeycomb9_colours = [9,"black","black","black","black","white","white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white","white","black","white","white"];
-	const equilateraltriangle7_colours = [7, "lightgreen", "lightgreen", "black","white", "white", "lightblue","lightblue", "black", "lightgreen", "lightgreen","white","white","black","lightblue","lightblue"];
-  const hexagonalgrid10_colours = [10, 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green','green', 'green', 'green','white', 'white', 'white', 'white','green','green','green', 'green','green'];
-	var userfile_colours = []; //gets filled in when the user loads a pattern file
-	const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
-	/* if one of the color choices is clicked on, change colorClass to its color */
-  document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", (e) => {
+// This should be the source of truth, not the circles in the VR!
+let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
+
+
+let spin_offset = 0;
+const bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadCrochetApp.css --bead-width)
+const half_bead_width = 7;//###7
+const outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
+const innerbaseline = 61; //###61...that get adjusted as the circumference changes...
+let repeatLocked = false; //true if the user locks the repeat length with the lock button
+const globalString = "initialstring";
+// remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
+const mobius6_colours = [6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"];
+const hexagonalgrid7_colours = [7,"blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"];
+const harlequin6_colours = [6,"black","black","black","black","black","black","black","black","black","black","black","black","green","black","black","black","black","black","green","green","black","black","black","black","green","green","green","black","black","black","green","green","green","green","black","black","green","green","green","green","green","black","green","green","green","green","green","green","green","green","green","green","green","green","black","green","green","green","green","green","black","black","green","green","green","green","black","black","black","green","green","green","black","black","black","black","green","green","black","black","black","black","black","green"];
+const honeycomb9_colours = [9,"black","black","black","black","white","white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white","white","black","white","white"];
+const equilateraltriangle7_colours = [7, "lightgreen", "lightgreen", "black","white", "white", "lightblue","lightblue", "black", "lightgreen", "lightgreen","white","white","black","lightblue","lightblue"];
+const hexagonalgrid10_colours = [10, 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green','green', 'green', 'green','white', 'white', 'white', 'white','green','green','green', 'green','green'];
+let userfile_colours = []; //gets filled in when the user loads a pattern file
+const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
+/* if one of the color choices is clicked on, change colorClass to its color */
+document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", (e) => {
     colorClass = el.style[ 'background-color' ];
     colorElement.classList .remove( 'selected-color' );
     el.classList .add( 'selected-color' );
     colorElement = el;
-	})
+  })
 );
+
+
 
 //save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
 //or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
-function saveToHistory(c,r, repeat_array){
-	var i;
-	var a = [];
+function saveToHistory(c,r, repeat_array)
+{
+	const a = [];
 	a[0]=c;//save the circumfernce in the 0th element of a new array, since we don't use that slot for the repeat data
 
 	for ( let i=1; i<=r; i++){ //save the current repeat state to the new array starting at index 1
@@ -87,20 +91,13 @@ function saveToHistory(c,r, repeat_array){
 	//console.log(repeat_array);
 }
 
-//Get rid of all the bead elements in the old repeat in preparation for creating a new one with new parameters.
-function removeRepeat(r) {
-	for ( let i=1; i<=r; i++) {
-		var elem = document.getElementById("bead" + i);
-		document.getElementById('VRPsvg').removeChild(elem);
-	}
-}
-
 //The function that gets called when the user changes the repeat or circumference parameters, or the
 //twist parameter is changed.
-function update() {
-	var circum = document.getElementById('fCircumference');
-	var repeat = document.getElementById('fREPEAT');
-	var twist = document.getElementById('fTwist');
+function update()
+{
+	const circum = document.getElementById('fCircumference');
+	const repeat = document.getElementById('fREPEAT');
+	const twist = document.getElementById('fTwist');
 
 	if ((circum.value > maxCircum) || (circum.value < minCircum)) {
 		alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
@@ -161,9 +158,9 @@ function update() {
 	}
 }
 
-function repeatGotBigger() {
-	var i = 0;
-	let new_colours = new Array(currentRepeat+1); //need extra slot because we store circum in slot 0 and use 1-n for repeat
+function repeatGotBigger()
+{
+	const new_colours = new Array(currentRepeat+1); //need extra slot because we store circum in slot 0 and use 1-n for repeat
 
 	for ( let i=1; i<=lastRepeat; i++) {
 		new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
@@ -175,9 +172,9 @@ function repeatGotBigger() {
 	saveToHistory(currentCircum, currentRepeat, new_colours);
 }
 
-function repeatGotSmaller() {
-	var i = 0;
-	let new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
+function repeatGotSmaller()
+{
+	const new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
 
 	for ( let i=1; i<=lastRepeat; i++) {
 		new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
@@ -187,10 +184,10 @@ function repeatGotSmaller() {
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
-function circumferenceChangedRepeatLocked() {
-	var i = 0;
+function circumferenceChangedRepeatLocked()
+{
 	lastRepeat = currentRepeat;
-	let new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
+	const new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
 	//copy the bead colors, lopping off the ones on the right of the Repeat to reduce the circumference
 	for ( let i=1; i<=currentRepeat; i++) {
 			new_colours[i] = bookIndexToColor[i];
@@ -202,16 +199,11 @@ function circumferenceChangedRepeatLocked() {
 //If the circumference increases, I've made a design choice to also increase the length of the repeat,
 // so as not to reduce height just because we are increasing width.  This decision made this a particularly
 //nasty function since we are effectively changing two things at once...
-function circumferenceGotBigger() {
-	var delta = currentCircum - lastCircum;
-	var revised_r = 0;
-	var olddouble_row_length = (lastCircum*2)+1;
- 	var i = 0;
-	var j = 0;
-	var old_i = 0;
-	var indented_row = false;
-	var b_index = 0;
-	var color = "white";
+function circumferenceGotBigger()
+{
+	const delta = currentCircum - lastCircum;
+	let revised_r = 0;
+	const olddouble_row_length = (lastCircum*2)+1;
 	// since circumference has increased, we're going to need to add add more to the repeat length to
 	//account for the bigger circumference, so calculate a new revised repeat length as well.
 	//To the current repeat, we add two extra beads for every double row
@@ -225,19 +217,19 @@ function circumferenceGotBigger() {
 	//alert("new repeat length is " + revised_r + " delta is " + delta);
 	lastRepeat = currentRepeat;
 	currentRepeat = revised_r;
-	var elem = document.getElementById("fREPEAT");
-	elem.value = revised_r;
+	document .getElementById("fREPEAT") .value = revised_r;
 
 	let new_colours = new Array(revised_r+1);//we need an extra space because we store the circum at 0 and the rest at 1 to n
 
-	for ( i = 1, old_i=1; (i <= (revised_r)) && (old_i <= lastRepeat+1); i++, old_i++ ) {
+	var indented_row = false;
+	for ( let i = 1, old_i=1; (i <= (revised_r)) && (old_i <= lastRepeat+1); i++, old_i++ ) {
 		//console.log("i, old_i : " + i + " " + old_i);
 		//if we're at the end of a double row or a single row, paint in the extra white beads
 		if ( (((old_i % olddouble_row_length) == 1) && indented_row) || //if start of a
 					( ((old_i % olddouble_row_length) == (lastCircum+2)) && !indented_row) ) {
 		  old_i--;
 			//console.log("made it through first conditional")
-			for (j = 0; ((j < delta) && ((i+j) <= (revised_r))); j++) {
+			for ( let j = 0; ((j < delta) && ((i+j) <= (revised_r))); j++) {
 				//console.log("i, j, delta, revised_r, last repeat are: " + i + " " + j + " " + delta + " " + revised_r + " " + lastRepeat);
 				new_colours[i+j] = "white";
 				//console.log("A new bead is inserted at" + " index " + (i+j));
@@ -258,37 +250,29 @@ function circumferenceGotBigger() {
 	saveToHistory(currentCircum, currentRepeat, new_colours);
 }
 
-function circumferenceGotSmaller() {
-	var delta = lastCircum - currentCircum;
-	var revised_r = 0;
-	var num_rows = 0; //will update this later
-	var i = 0;
-	var j = 0;
-	var old_i = 0;
-	var indented_row = false;
-	var b_index = 0;
-	var color = "white";
-	var index;
+function circumferenceGotSmaller()
+{
+	const delta = lastCircum - currentCircum;
 	// since circumference has decreased, we're going to need to reduce the repeat length to
 	//account for the smaller circumference, so calculate a new revised repeat length as well.
 	//To the current repeat, we remove two extra beads for every double row
-	revised_r = currentRepeat - (  Math.floor((currentRepeat/((2*lastCircum)+1))) * (2 * delta));
+	let revised_r = currentRepeat - (  Math.floor((currentRepeat/((2*lastCircum)+1))) * (2 * delta));
 	if ((currentRepeat % ((2*lastCircum)+1)) >= (lastCircum+1)) {//if there's an additional full single row at the top
 		revised_r-=delta;//then remove delta more beads, so that every full row gets delta fewer beads.
 	}
 	//alert("new repeat length is " + revised_r + " delta is " + delta);
 	lastRepeat = currentRepeat;
 	currentRepeat = revised_r;
-	var elem = document.getElementById("fREPEAT");
-	elem.value = revised_r;//set the repeat on screen to its new value
-	num_rows = calculateNumRows(lastCircum, lastRepeat);
+  document .getElementById( "fREPEAT" ) .value = revised_r;//set the repeat on screen to its new value
+	const num_rows = calculateNumRows(lastCircum, lastRepeat);
   //alert("num_rows is " + num_rows);
 	let new_colours = new Array(revised_r+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
 	//copy the bead colors, lopping off the ones on the right of the old Repeat to reduce the circumference
 	//I really hate this code.  There's gotta be a better way to do this!
-	index = 1;
+	let index = 1;
+	let indented_row = false;
 	for ( let i=0; i<num_rows; i++) {
-		for (j=1; j<=(lastCircum-delta); j++)  {
+		for ( let j=1; j<=(lastCircum-delta); j++)  {
 			if(index > (revised_r+1)) {break;}
 			new_colours[index] = bookIndexToColor[index+(delta*i)];
 			//console.log(index + " coming from " + (index+(delta*i)));
@@ -379,7 +363,8 @@ element.style.transform = 'rotate(' + angleInDegrees + 'deg)';
 
 //There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
 //the repeat grows beyond the maximum.  There was an issue, I think I fixed it.
-function reshapeRepeat(c,r) {
+function reshapeRepeat( c, r )
+{
 	if ((c > maxCircum) || (c < minCircum)) { //probably don't need these checks here -- we do it earlier in function update
 		alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
 	}
@@ -387,9 +372,10 @@ function reshapeRepeat(c,r) {
 		alert('Repeat length must be between ' + minRepeat + ' and ' + maxRepeat);
 	}
 	else {
-		removeRepeat(lastRepeat); //get rid of the old repeat
-		createRepeat(c,r); //create a new one
+    document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
     document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
+
+    createRepeat(c,r); //create a new one
     createTile();
 		mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
 		updateBeadPlane(c,r); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
