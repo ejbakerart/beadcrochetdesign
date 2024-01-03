@@ -34,13 +34,13 @@
 	var bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //a 2D array that maps beads in the beadplane
 	//to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
 	//repeat bead number (as the book_index or stringing position in the repeat)
-	let creationIndexToBookIndex = new Array(maxRepeat); // these arrays are for easier conversion from the html top-to-bottom-left-to-right ordering
-	let bookIndexToCreationIndex = new Array(maxRepeat); // of beads to the Repeat's index ordering in our book, which is bottom-to-top.
-	let creationIndexToColor = new Array(maxRepeat);
+
+
+  // This should be the source of truth, not the circles in the VR!
 	let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
-	let oldBookIndexToColor = new Array(maxRepeat);
-	var num_rope_double_rows = 31;
-	var spin_offset = 0;
+	
+  
+  var spin_offset = 0;
 	var bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadCrochetApp.css --bead-width)
 	var half_bead_width = 7;//###7
 	var outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
@@ -316,7 +316,7 @@ function circumferenceGotSmaller() {
 //It repaints everything on the screen based solely on the input values of c and r and
 //the repeat colors assigned in the the input array.  Thus that array
 //must be filled in correctly before calling this function.  This function updates all the
-//other global arrays, with a call to updateRepeatMappingArrays.
+//other global arrays, with a call to syncRepeatToState.
 function refreshEverything(c, r, colorArray, resetRedo)
 {
 	reshapeRepeat(c, r);
@@ -336,7 +336,7 @@ function refreshEverything(c, r, colorArray, resetRedo)
   //and paint all beads with the new array
   colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
 
-  updateRepeatMappingArrays();
+  syncRepeatToState();
 	paintRopeBeadplane(r);
 	//Change the rope's masking divs to new width settings appropriately sized for any new size rope
 	var innerElem = document.getElementById("ROPEWRAPPER");
@@ -393,7 +393,7 @@ function reshapeRepeat(c,r) {
     createTile();
 		mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
 		updateBeadPlane(c,r); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
-		updateRepeatMappingArrays(); //set up some other arrays that make it easier to go between repeat and beadplane
+		syncRepeatToState(); //set up some other arrays that make it easier to go between repeat and beadplane
 		spin_offset = 0; //reset the spin offset
 		//removeRope(lastCircum,lastRepeat); //get rid of the old rope
 		//createRope(c,r); //and create a new one
@@ -406,7 +406,7 @@ function handleColorAll()
   paintAllBeads( colorClass );
 	clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
 	clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
-	updateRepeatMappingArrays();
+	syncRepeatToState();
 	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 	remaining_redos = 0;
 }
@@ -417,7 +417,7 @@ function beadPlaneClick( bookIndex )
 {
   paintBeads( bookIndex, colorClass );
   paintCorrespondingBeads( bookIndex, colorClass );
-  updateRepeatMappingArrays();
+  syncRepeatToState();
   paintRopeBeadplane( currentRepeat );
   saveToHistory( currentCircum, currentRepeat, bookIndexToColor );
   remaining_redos = 0;
@@ -569,22 +569,17 @@ const paintBeads = ( bead, color ) =>
   }
 }
 
-//Update the arrays that make it easier to find, given a bead element, it's book index number in the REPEAT
-//and its color. We need this since the dynically created beads in the repeat are not naturally indexed by the REPEAT number
-//since we had to create them in the HTML top-to-bottom-left-to-right-order, which is different is
-//the "book" index of bottom-to-top-left-to-right.  Maybe change this to allow just fixing one specific beads index instead
-//of all of them all the time...?  Not sure it will work, but still needs thought...could try using a range
-//from start to end indices as input parameters?
-function updateRepeatMappingArrays(){
+//  This is backwards.  bookIndexToColor should be the first thing touched, and this
+//   sync should update the VR bead circles to match.
+function syncRepeatToState()
+{
 	for ( let i=1; i<=currentRepeat; i++) {
 		var elem = document.getElementById("bead" + i);
 		const color = elem.getAttribute("fill");
-    creationIndexToColor[i] = color;
 		bookIndexToColor[Number(elem.getAttribute("book_index"))] = color;
-		bookIndexToCreationIndex[Number(elem.getAttribute("book_index"))] = i;
-		creationIndexToBookIndex[i] = Number(elem.getAttribute("book_index"));
 	}
 }
+
 //for debugging use
 function printRepeatInfoToConsole(){
 	for ( let i=1; i<=currentRepeat; i++) {
@@ -657,7 +652,7 @@ function createRepeat(c,r) {
 			newElement.onclick = function() {
         newElement .setAttribute( 'fill', colorClass );
         const beadnumber = newElement .getAttribute('book_index');
-        updateRepeatMappingArrays();
+        syncRepeatToState();
         paintCorrespondingBeads(beadnumber, colorClass);
         paintBeads( beadnumber, colorClass );
         paintRopeBeadplane(r);
@@ -1175,7 +1170,7 @@ function setup()
 	createBeadPlane('BP', emptystring);
   createTile();
 	updateBeadPlane(currentCircum, currentRepeat);
-	updateRepeatMappingArrays();
+	syncRepeatToState();
 	createBeadPlane("ROPE", "rope");
 	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 
