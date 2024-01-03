@@ -6,10 +6,8 @@
 
 	var colorPickerColor = "#257b98"; //gets set by the interactive color picker.
 
-	var startcircum = 7; //the initially set parameters for the circumference and repeat, the
-	var startrepeat = 57; //hard wiring has to be changed in the html file too if they are changed
-	var currentRepeat = startrepeat;
-	var currentCircum = startcircum;
+	var currentCircum = 7;
+	var currentRepeat = 57;
 	var lastRepeat = 0;
 	var lastCircum = 0;
 	var currentTwist = 0;
@@ -462,6 +460,20 @@ function createBeadPlane(where, tag) {
 			document.getElementById(where+"svg").appendChild(newCircle);
 		} //end inner for loop
 	} //end outer for loop
+}
+
+const lcm = ( num1, num2 ) =>
+{
+  let min = (num1 > num2) ? num1 : num2;
+
+  // while loop
+  while (true) {
+      if (min % num1 == 0 && min % num2 == 0) {
+          console.log(`The LCM of ${num1} and ${num2} is ${min}`);
+          return min;
+      }
+      min++;
+  }
 }
 
 const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead
@@ -1170,7 +1182,11 @@ function removeFileFromLoadList() {
 	x.add(option, x[index]); //and replace it with the place holder selection
 }
 
-function setup() {
+function setup()
+{
+  // No more hard-coding in the HTML
+  document .getElementById( 'fREPEAT' )        .setAttribute( 'value', currentRepeat );
+  document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
 
 	const aboutDialog = document.getElementById('about');
   aboutDialog .addEventListener( 'click', () => aboutDialog .className += ' hidden' );
@@ -1178,14 +1194,14 @@ function setup() {
 	const tileDialog = document.getElementById( 'tile-backdrop' );
   tileDialog .addEventListener( 'click', () => tileDialog .className += ' hidden' );
 
-  createRepeat(startcircum, startrepeat);
-	mappingFunction(startcircum, startrepeat);
+  createRepeat(currentCircum, currentRepeat);
+	mappingFunction(currentCircum, currentRepeat);
 	createBeadPlane('BP', emptystring);
   createTile();
-	updateBeadPlane(startcircum, startrepeat);
+	updateBeadPlane(currentCircum, currentRepeat);
 	updateRepeatMappingArrays();
 	createBeadPlane("ROPE", "rope");
-	saveToHistory(startcircum, startrepeat, bookIndexToColor);
+	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 
 	const fileSelector = document.getElementById('file-selector');
 	fileSelector.addEventListener('change', (event) => {
@@ -1272,20 +1288,6 @@ function setup() {
 		//or a painted bead, so call the update function
 		update();
 	}) );
-}
-
-const lcm = ( num1, num2 ) =>
-{
-  let min = (num1 > num2) ? num1 : num2;
-
-  // while loop
-  while (true) {
-      if (min % num1 == 0 && min % num2 == 0) {
-          console.log(`The LCM of ${num1} and ${num2} is ${min}`);
-          return min;
-      }
-      min++;
-  }
 }
 
 setup();
