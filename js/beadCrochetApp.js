@@ -123,7 +123,7 @@ function update() {
 	//since changes the circumference also changes the repeat, but not vice versa.
 	if ((currentCircum != lastCircum) || (currentRepeat != lastRepeat)) {
 		//alert("cleared beadplane");
-    clearTile( 'white' );
+    paintAllBeads( 'white' );
 		clearBeadplane("white", emptystring); // if there are changes, the beadplanes will have to be repainted, so clear first
 		clearBeadplane("white", "rope"); //we need to clear both the main beadplane and the rope beadplane
 		if (currentCircum > lastCircum) {
@@ -317,14 +317,9 @@ function circumferenceGotSmaller() {
 //the repeat colors assigned in the the input array.  Thus that array
 //must be filled in correctly before calling this function.  This function updates all the
 //other global arrays, with a call to updateRepeatMappingArrays.
-function refreshEverything(c, r, colorArray, resetRedo) {
-var i;
-var index;
-var row;
-var col;
-var b_index;
-var color;
-	drawRepeat(c, r);
+function refreshEverything(c, r, colorArray, resetRedo)
+{
+	reshapeRepeat(c, r);
 	//REPLACE THIS FOR LOOP WITH A LOOP THAT GOES THROUGH EVERY BEAD IN THE BEADPLANE, DETERMINES ITS
 	//CORRESPONDING BEAD IN THE REPEAT, GETS THE COLOR OF THAT BEAD FROM THE REPEAT, AND THEN PAINTS IT THAT COLOR -
 	//console.log("In refresh everything, c, r, and colorArray are " + c + " " + r);
@@ -332,22 +327,16 @@ var color;
 	//paint the beadplane with the new array
 	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + i );
-		row = Number( circle.getAttribute("row") );
-		col = Number( circle.getAttribute("col") );
-		var index = bpValues[row][col];
+		const row = Number( circle.getAttribute("row") );
+		const col = Number( circle.getAttribute("col") );
+		const index = bpValues[row][col];
     circle .setAttribute( 'fill', colorArray[index] );
 	}
-	//and paint the repeat with the new array
-	for ( let i=1; i<=r; i++) {
-		var beadelem = document.getElementById("bead" + i); //get the bead element
-		b_index = Number(beadelem.getAttribute("book_index")); //determine its book index
-		color = colorArray[b_index];
-    beadelem .setAttribute( 'fill', color );
 
-    // also repaint the tile
-    paintBeads( b_index, color );
-	}
-	updateRepeatMappingArrays();
+  //and paint all beads with the new array
+  colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
+
+  updateRepeatMappingArrays();
 	paintRopeBeadplane(r);
 	//Change the rope's masking divs to new width settings appropriately sized for any new size rope
 	var innerElem = document.getElementById("ROPEWRAPPER");
@@ -388,9 +377,9 @@ element.style.transform = 'rotate(' + angleInDegrees + 'deg)';
 // or do this: element.style.transform = 'rotate(10deg)';
 }
 
-//There might be an issue in drawRepeat at the limit of a big repeat -- if the user changes the circumference such that
+//There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
 //the repeat grows beyond the maximum.  There was an issue, I think I fixed it.
-function drawRepeat(c,r) {
+function reshapeRepeat(c,r) {
 	if ((c > maxCircum) || (c < minCircum)) { //probably don't need these checks here -- we do it earlier in function update
 		alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
 	}
@@ -410,30 +399,27 @@ function drawRepeat(c,r) {
 		//createRope(c,r); //and create a new one
 	}
 }
-//This function gets called when the Clear button is pushed.  It clears the colors from the beadplane and repeat.
+//This function gets called when the `Color All` button is pushed.  It clears the colors from the beadplane and repeat.
 //It takes the repeat length as an input parameter.
-function Clear(r) {
-	for ( let i=1; i<=r; i++) { //first clear all the beads in the repeat
-		var elem = document.getElementById("bead" + i);
-    elem .setAttribute( 'fill', colorClass );
-	}
-  clearTile( colorClass );
-	clearBeadplane(colorClass, emptystring); //then clear the beads in the main beadplane
-	clearBeadplane(colorClass, "rope");//and clear the simulated rope beadplane too
+function handleColorAll()
+{
+  paintAllBeads( colorClass );
+	clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
+	clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
 	updateRepeatMappingArrays();
-	saveToHistory(currentCircum, r, bookIndexToColor);
+	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 	remaining_redos = 0;
 }
 
 const lineHeight = Math.sqrt( 3 ) / 2;
 
-function beadPlaneClick( x ) {
-  paintBeads( x, colorClass );
-  paintCorrespondingBeads(x, colorClass);
-  paintCorrespondingBeadplaneBeadToRepeat(x, colorClass);
+function beadPlaneClick( bookIndex )
+{
+  paintBeads( bookIndex, colorClass );
+  paintCorrespondingBeads( bookIndex, colorClass );
   updateRepeatMappingArrays();
-  paintRopeBeadplane(currentRepeat);
-  saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
+  paintRopeBeadplane( currentRepeat );
+  saveToHistory( currentCircum, currentRepeat, bookIndexToColor );
   remaining_redos = 0;
 }
 
@@ -441,7 +427,8 @@ function beadPlaneClick( x ) {
 //the ID of the div within which this bead plane should be placed. The "tag" parameter specifies an
 //additional ID for the beadplane, since we are creating multiple beadplanes, a main one and one for the rope.
 //THe main beadplane has an empty tag, and the rope beadplane tag is "rope".
-function createBeadPlane(where, tag) {
+function createBeadPlane(where, tag)
+{
 	var beadorder = 1; //each bead in the plane gets a unique id of beadPlane[i] -- I need to figure this out...
 	for ( let i=bpHeight; i>0; i--){
 		for( let j=1; j<=bpWidth; j++){
@@ -504,7 +491,7 @@ function createTile()
         bead = x % currentRepeat; // setrepeat offset for this bead
         x++;
       }
-      newCircle.setAttribute( 'class', 'bead'+bead );
+      newCircle .classList .add( 'bookindex-'+bead );
       newCircle.setAttribute( "r", beadDiameter/2 );
       newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", beadDiameter * (j - 1 + (i%2 ? 0 : 0.5 ) ) );
@@ -562,7 +549,7 @@ function paintRopeBeadplane(r) {
 	}
 }
 //When bead number x in the repeat is painted, paint all its corresponding beads
-//in the bead plane and its bead in the repeat.  This function takes x and the bead color as input params
+//in the bead plane.  This function takes x and the bead color as input params
 function paintCorrespondingBeads(x, color){
  	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + i );
@@ -577,23 +564,9 @@ function paintCorrespondingBeads(x, color){
 
 const paintBeads = ( bead, color ) =>
 {
-  for ( const circle of document .querySelectorAll( '.bead'+bead ) ) {
+  for ( const circle of document .querySelectorAll( '.bookindex-'+bead ) ) {
     circle .setAttribute( 'fill', color );
   }
-}
-
-//When bead element in the beadplane is painted, paint the corresponding bead in the repeat
-function paintCorrespondingBeadplaneBeadToRepeat(x, color) {
-//It might make more sense to change this so that we set up a mapping array in advance for the repeat, too,
-//which gives the mappings from bead number to the book_index.  Then we could just look up the book_index instead of
-//having to loop through the entire repeat looking the bead with the correct index.
-  for ( let i=1; i<=currentRepeat; i++) {
-		var elem = document.getElementById("bead" + i);
-		let index = Number( elem.getAttribute("book_index") );
-	  if (x == index) {
-      elem .setAttribute( 'fill', color );
-		}
-	}
 }
 
 //Update the arrays that make it easier to find, given a bead element, it's book index number in the REPEAT
@@ -630,7 +603,7 @@ function clearBeadplane(incolor, tag) {
 	}
 }
 
-const clearTile = ( color ) =>
+const paintAllBeads = ( color ) =>
 {
   for (let index = 1; index <= currentRepeat; index++) {
     paintBeads( index, color );
@@ -747,8 +720,10 @@ function mappingFunction(c,r) {
 	var top_row_start_index = r - top_row_length + 1;
 	var next_row_start_index = top_row_start_index;
 	for ( let i=0; i<top_row_length; i++) {
-		var elem = document.getElementById("bead" + (i+1));
-		elem.setAttribute("book_index", Number(top_row_start_index + i));
+		const elem = document.getElementById("bead" + (i+1));
+    const bookIndex = top_row_start_index + i;
+		elem .setAttribute("book_index", Number( bookIndex ));
+    elem .classList .add( 'bookindex-' + bookIndex );
 		//console.log("new index for " + oldIndex + " is " + Number(top_row_start_index + i));
 	}
 	if (top_row_length == r) { //if the top row is the only row, we're done
@@ -769,6 +744,7 @@ function mappingFunction(c,r) {
 			var elem = document.getElementById("bead" + i);
 			newIndex = next_row_start_index + (j-1);
 			elem.setAttribute("book_index", newIndex);
+      elem .classList .add( 'bookindex-' + newIndex );
 			//console.log("new index for " + oldIndex + " is " + newIndex);
 			i++;
 			if (indented_row && (j+1 == c+1)) {
@@ -1246,7 +1222,7 @@ function setup()
 		var clickType = el.getAttribute('value');
 		switch (clickType) {
 			case 'Color All':
-				Clear(currentRepeat);
+				handleColorAll();
 				break;
 			case 'About':
         aboutDialog .classList .remove( 'hidden' );
