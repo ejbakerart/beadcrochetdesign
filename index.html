@@ -42,17 +42,16 @@
   </div>
 
   <div id="file-operations">
-    <input type="file" id="file-selector" accept=".txt">
-    <label for="file-selector">Select File to Load</label>
+    <input type="button" value="Open"></input>
     <select name="load-choices" id="load-choices">
-      <option value="load">LOAD</option>
+      <option value="">-- no source --</option>
+      <option value="userfileplaceholder">-- local file --</option> 
       <option value="harlequin6">Harlequin 6</option>
       <option value="hexagonalgrid7">Hexagonal Grid 7</option>
       <option value="mobius6">Mobius 6</option>
       <option value="equilateraltriangle7">Equilateraltriangle 7</option>
       <option value="honeycomb9">Honeycomb 9</option>
       <option value="hexagonalgrid10">Hexagonal Grid 10</option>
-      <option value="userfileplaceholder">Or Choose File Above</option> 
     </select>
     <input type="button" value="Save"></input>
   </div>

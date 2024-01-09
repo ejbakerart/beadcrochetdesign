@@ -1,6 +1,6 @@
 //See beadCrochetAppNotes for an important note regarding parameters controlling the bead size on the screen.
 
-import { saveFileAs } from './files.js';
+import { openFile, saveFileAs } from './files.js';
 import { generateImageBlobFromSVG } from './images.js';
 
 let colorElement = document .querySelector( '.select-color' ); // returns the first
@@ -51,17 +51,20 @@ const half_bead_width = 7;//###7
 const outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
 const innerbaseline = 61; //###61...that get adjusted as the circumference changes...
 let repeatLocked = false; //true if the user locks the repeat length with the lock button
-const globalString = "initialstring";
+
 // remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
-const mobius6_colours = [6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"];
-const hexagonalgrid7_colours = [7,"blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"];
-const harlequin6_colours = [6,"black","black","black","black","black","black","black","black","black","black","black","black","green","black","black","black","black","black","green","green","black","black","black","black","green","green","green","black","black","black","green","green","green","green","black","black","green","green","green","green","green","black","green","green","green","green","green","green","green","green","green","green","green","green","black","green","green","green","green","green","black","black","green","green","green","green","black","black","black","green","green","green","black","black","black","black","green","green","black","black","black","black","black","green"];
-const honeycomb9_colours = [9,"black","black","black","black","white","white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white","white","black","white","white"];
-const equilateraltriangle7_colours = [7, "lightgreen", "lightgreen", "black","white", "white", "lightblue","lightblue", "black", "lightgreen", "lightgreen","white","white","black","lightblue","lightblue"];
-const hexagonalgrid10_colours = [10, 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green','green', 'green', 'green','white', 'white', 'white', 'white','green','green','green', 'green','green'];
-let userfile_colours = []; //gets filled in when the user loads a pattern file
+const builtInDesigns = {
+  mobius6             : [ 6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"],
+  hexagonalgrid7      : [ 7, "blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"],
+  harlequin6          : [ 6, "black","black","black","black","black","black","black","black","black","black","black","black","green","black","black","black","black","black","green","green","black","black","black","black","green","green","green","black","black","black","green","green","green","green","black","black","green","green","green","green","green","black","green","green","green","green","green","green","green","green","green","green","green","green","black","green","green","green","green","green","black","black","green","green","green","green","black","black","black","green","green","green","black","black","black","black","green","green","black","black","black","black","black","green"],
+  honeycomb9          : [ 9, "black","black","black","black","white","white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white", "white","black","white","white","black","black","black","black","white", "white","black","white","white","white","black","white","white"],
+  equilateraltriangle7: [ 7, "lightgreen", "lightgreen", "black","white", "white", "lightblue","lightblue", "black", "lightgreen", "lightgreen","white","white","black","lightblue","lightblue"],
+  hexagonalgrid10     : [10, 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green','green', 'green', 'green','white', 'white', 'white', 'white','green','green','green', 'green','green'],
+}
+
 const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
 /* if one of the color choices is clicked on, change colorClass to its color */
+
 document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", (e) => {
     colorClass = el.style[ 'background-color' ];
     colorElement.classList .remove( 'selected-color' );
@@ -330,8 +333,6 @@ function refreshEverything(c, r, colorArray, resetRedo)
 	var outerElem = document.getElementById("OuterROPEWRAPPER");
 	innerElem.style["width"] = innerbaseline + ((bead_width+1) * (c-minCircum));
 	outerElem.style["width"] = outerbaseline + (half_bead_width * (c-minCircum));
-	var loadelem = document.getElementById('load-choices');//reset the load drop-down menu
-	loadelem.value = "load";
 	if (resetRedo)  //reset the REDO counter if the caller says to do so
 		remaining_redos = 0;
 
@@ -445,7 +446,6 @@ const lcm = ( num1, num2 ) =>
   // while loop
   while (true) {
       if (min % num1 == 0 && min % num2 == 0) {
-          console.log(`The LCM of ${num1} and ${num2} is ${min}`);
           return min;
       }
       min++;
@@ -764,159 +764,50 @@ function addToPalette(color) {
 		elem.style["background-color"]=color;
 		colorpicker[nextColor] = color;
 }
-//THIS IS THE FUNCTION I AM USING TO READ AND LOAD FILES from THE USERS LOCAL DISK.
-//Because it attempts to open and read the file runs asynchronously, it creates an event handler
-//that waits for the load to complete and runs only then.  Thus calls to this function cannot
-//assume that it has completed its work, and any attempt right after a call to PREVIEWFILE
-//to read the globalString it sets up may fail if it has not yet finished the file load.
-function previewFile() {
-  const [file] = document.querySelector('input[type=file]').files;
+
+function loadDesign( design )
+{
+  lastRepeat = currentRepeat;
+  lastCircum = currentCircum;
+  currentRepeat = design.length - 1;
+  currentCircum = Number(design[0]);
+  document.getElementById("fREPEAT") .value = currentRepeat;
+  document.getElementById("fCircumference") .value = currentCircum;
+  refreshEverything(currentCircum, currentRepeat, design, true);
+  saveToHistory(currentCircum, currentRepeat, design);
+}
+
+function loadFile( file )
+{
+  if ( !file )
+    return;
   const reader = new FileReader();
-
-  reader.addEventListener("load", () => {
-    globalString = reader.result;
-		if(globalString) {
-    try {
-        a = JSON.parse(globalString);
-    } catch(e) {
+  reader .addEventListener( "load", () => {
+    const fileText = reader.result;
+    if ( fileText ) {
+      try {
+        loadDesign( JSON.parse(fileText) );
+      } catch(e) {
         alert("Input file not in correct format. "); // error in the above string
-				console.log("Error reading file: " + e);
-				globalString = "error";
-    	}
-		}
-    //console.log(JSON.parse(globalString));
-  }, false);
+        console.log("Error reading file: " + e);
+      }
+    }
+  }, false );
+  reader.readAsText( file );
+}
 
-  if (file) {
-    reader.readAsText(file);
+function loadSelectedSource()
+{
+	const val = document.getElementById('load-choices').value;
+  if ( val === 'userfileplaceholder' ) {
+    const fileType = { description: 'bead crochet design file', accept: { '*/*' : [ '.txt' ] } }
+    openFile( [ fileType ] )
+      .then( file => loadFile( file ) );
+  } else if ( !!val ) {
+    loadDesign( builtInDesigns[ val ] );
   }
 }
 
-//NOT USING THIS ANYMORE EITHER
-function getStringFromFile(file) {
-	const reader = new FileReader();
-	reader.readAsText(file);
-}
-
-//NOT USING THIS NOW.  Gets the pattern specified in the loadable user file.  Opens the file
-function getUserFileColours(selectedFile) {
-	var i;
-  console.log(selectedFile);
-	alert("File chosen is " + selectedFile);
-	contents = getStringFromFile(selectedFile); //NEED TO WRITE THIS!!
-	userfile_colours = restoreArrayFromString(contents);
-	var r_elem = document.getElementById("fREPEAT");
-	var c_elem = document.getElementById("fCircumference");
-	lastRepeat = currentRepeat;
-	lastCircum = currentCircum;
-	for ( let i=0; i<= mobius6_colours.length - 1; i++) {
-		userfile_colours[i] = mobius6_colours[i]; //for now until I figure out how to load the real file
-	}
-	console.log(userfile_colours);
-	currentRepeat = userfile_colours.length - 1;
-	currentCircum = userfile_colours[0];
-	r_elem.value = currentRepeat;
-	c_elem.value = currentCircum;
-	refreshEverything(currentCircum, currentRepeat, userfile_colours, true);
-	saveToHistory(currentCircum, currentRepeat, userfile_colours);
-	//var dirhandle = getDir();  //don't need this now -- getting load file directly from click on choose file
-	//alert("Got directory handle in getUserFileColours " + dirhandle);
-}
-
-//called when the load drop down menu is used.  determines which option was chosen and loads the selected pattern.
-function getOption() {
-	//alert("in get option");
-	var val = document.getElementById('load-choices').value;
-	var r_elem = document.getElementById("fREPEAT");
-	var c_elem = document.getElementById("fCircumference");
-	switch (val) {
-		case 'LOAD':
-			break;
-		case 'harlequin6':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 84;
-			currentCircum = 6;
-			r_elem.value = 84;
-			c_elem.value = 6;
-			refreshEverything(6, 84, harlequin6_colours, true);
-			saveToHistory(currentCircum, currentRepeat, harlequin6_colours);
-			break;
-		case 'hexagonalgrid7':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 57;
-			currentCircum = 7;
-			r_elem.value = 57;
-			c_elem.value = 7;
-			refreshEverything(7, 57, hexagonalgrid7_colours, true);
-			saveToHistory(currentCircum, currentRepeat, hexagonalgrid7_colours);
-			break;
-		case 'hexagonalgrid10':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 111;
-			currentCircum = 10;
-			r_elem.value = 111;
-			c_elem.value = 10;
-			refreshEverything(10, 111, hexagonalgrid10_colours, true);
-			saveToHistory(currentCircum, currentRepeat, hexagonalgrid10_colours);
-			break;
-		case 'mobius6':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 10;
-			currentCircum = 6;
-			r_elem.value = 10;
-			c_elem.value = 6;
-			refreshEverything(6, 10, mobius6_colours, true);
-			saveToHistory(currentCircum, currentRepeat, mobius6_colours);
-			break;
-		case 'equilateraltriangle7':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 15;
-			currentCircum = 7;
-			r_elem.value = 15;
-			c_elem.value = 7;
-			refreshEverything(7, 15, equilateraltriangle7_colours, true);
-			saveToHistory(currentCircum, currentRepeat,equilateraltriangle7_colours);
-			break;
-		case 'honeycomb9':
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			currentRepeat = 52;
-			currentCircum = 9;
-			r_elem.value = 52;
-			c_elem.value = 9;
-			refreshEverything(9, 52, honeycomb9_colours, true);
-			saveToHistory(currentCircum, currentRepeat, honeycomb9_colours);
-			break;
-		case 'userfile':
-			if ((globalString == "error") || (globalString == "")) {
-				removeFileFromLoadList();
-				alert("You can only load from pattern files that are in the correct format, such as those previously saved by this application. The file must be a text file with a .txt ending.");
-				break;
-			}
-			lastRepeat = currentRepeat;
-			lastCircum = currentCircum;
-			var userfile_colours = JSON.parse(globalString);
-			//console.log(userfile_colours);
-			currentRepeat = userfile_colours.length - 1;
-			currentCircum = Number(userfile_colours[0]);
-			r_elem.value = currentRepeat;
-			c_elem.value = currentCircum;
-			//console.log(currentCircum + " " + currentRepeat + " " + userfile_colours);
-			refreshEverything(currentCircum, currentRepeat, userfile_colours, true);
-			saveToHistory(currentCircum, currentRepeat, userfile_colours);
-			break;
-		case 'userfileplaceholder':
-			alert("Please first choose a file using the Choose File button. It must be a file in the correct format, such as one previously saved by this application, with a file name ending in .txt. After you choose it, it will appear in the LOAD file option list and you can then select and load it.");
-			var loadelem = document.getElementById('load-choices');//reset the load drop-down menu
-			loadelem.value = "load";
-			break;
-	}
-}
 //called when the user presses the "UNDO" button.  Returns to the previous state of the repeat.
 //There are history_limit minus 1 possible undos.
 function undo() {
@@ -1120,28 +1011,6 @@ function restoreArrayFromString(contents) {
 	var my_array = JSON.parse(contents);
 	return(my_array);
 }
-//take the file that was just selected and add it's name to the end of the list of loadable patterns
-function addFileToLoadList(filename) {
-	var x = document.getElementById("load-choices");
-	var index = x.length-1;
-	var option = document.createElement("option");
-	option.text = filename;
-	option.value = "userfile";
-	x.remove(index); //remove the prior user file option
-	x.add(option, x[index]); //and replace it with the new one
-}
-
-//This gets called when there is an error in the user loaded file because we then need to remove it from the
-//end of list of loadable design options, and put the place holder option back.
-function removeFileFromLoadList() {
-	var x = document.getElementById("load-choices");
-	var option = document.createElement("option");
-	option.text = "Or Choose Load File Above";
-	option.value = "userfileplaceholder";
-	var index = x.length - 1;
-	x.remove(index); //remove the last item in the list of loadable options
-	x.add(option, x[index]); //and replace it with the place holder selection
-}
 
 function setup()
 {
@@ -1164,20 +1033,6 @@ function setup()
 	createBeadPlane("ROPE", "rope");
 	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 
-	const fileSelector = document.getElementById('file-selector');
-	fileSelector.addEventListener('change', (event) => {
-		const fileList = event.target.files;
-		const selectedFile = fileSelector.files[0];
-		previewFile();//this tries to read the file asynchronously
-		addFileToLoadList(selectedFile.name);
-		//THESE NEXT TWO LINES WORK INSIDE PREVIEWFILE, BUT NOT HERE -- synchronicity problem if still waiting for file to load
-		//console.log(globalString);
-    //console.log(JSON.parse(globalString));
-	});
-
-	document.getElementById("load-choices").addEventListener("change", function() {
-  	getOption();
-	});
 	document.getElementById("ColorPicker").addEventListener("change", function() {
   	newColor();
 	});
@@ -1230,6 +1085,9 @@ function setup()
 				break;
 			case 'Add':
 				addToPalette(colorPickerColor);
+				break;
+      case 'Open':
+        loadSelectedSource();
 				break;
       case 'Save':
 				var contents = JSON.stringify(repeatHistory[historyIndex]);
