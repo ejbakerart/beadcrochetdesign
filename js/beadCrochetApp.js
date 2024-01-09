@@ -1,5 +1,8 @@
 //See beadCrochetAppNotes for an important note regarding parameters controlling the bead size on the screen.
 
+import { saveFileAs } from './files.js';
+import { generateImageBlobFromSVG } from './images.js';
+
 let colorElement = document .querySelector( '.select-color' ); // returns the first
 let colorClass = colorElement.style[ 'background-color' ];
 colorElement.classList .add( 'selected-color' );
@@ -449,7 +452,8 @@ const lcm = ( num1, num2 ) =>
   }
 }
 
-const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead
+const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead in SVG
+const pixelsPerBead = 16; // for image output
 
 function createTile()
 {
@@ -1191,6 +1195,13 @@ function setup()
   } );
   document .getElementById( 'export-tile' ) .addEventListener( 'click', () => {
     exportFile( document .getElementById( 'tile-svg' ) .outerHTML );
+  } );
+  document .getElementById( 'export-tile-png' ) .addEventListener( 'click', () => {
+    const svgText = document .getElementById( 'tile-svg' ) .outerHTML;
+    generateImageBlobFromSVG( svgText, currentRepeat*beadDiameter*pixelsPerBead, 'image/png' )
+      .then( blob => saveFileAs( 'svg2png.png', blob ) )
+      .catch( error => console.log( error ) );
+    ;
   } );
 
   document .getElementById( 'tile-button' ) .addEventListener( 'click', () => {

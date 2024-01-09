@@ -191,18 +191,21 @@ Also, the numbers are ever so slightly off, which is annoying.
     <div id="tile">
       <fieldset>
         <legend>Rectangular Tile</legend>
-        <svg id="tile-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
-          <!-- width and height 99s will be adjusted dynamically, above and below -->
-          <defs>
-            <clipPath id="clip">
-              <rect id="clip-rect" width="99" height="99" />
-            </clipPath>
-          </defs>
-          <g id="tile-group" clip-path="url(#clip)" >
-            <!-- bead circles added here dynamically-->
-          </g>
-        </svg>
+        <div id="tile-scroller">
+          <svg id="tile-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
+            <!-- width and height 99s will be adjusted dynamically, above and below -->
+            <defs>
+              <clipPath id="clip">
+                <rect id="clip-rect" width="99" height="99" />
+              </clipPath>
+            </defs>
+            <g id="tile-group" clip-path="url(#clip)" >
+              <!-- bead circles added here dynamically-->
+            </g>
+          </svg>
+        </div>
         <input type="button" id="export-tile" value="Export SVG"></input>
+        <input type="button" id="export-tile-png" value="Export PNG"></input>
       </fieldset>
     </div>
   </div>

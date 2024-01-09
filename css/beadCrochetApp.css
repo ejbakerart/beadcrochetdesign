@@ -261,13 +261,20 @@ body {
 /*  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 #tile {
-  min-width: 1000px;
+  /* min-width: 1000px; */
   display: inline-block;
   overflow: auto;
   background-color: #cccccc;
   padding: 1rem;
   border: 1px solid black;
   border-radius: 5px;
+}
+
+#tile-scroller {
+  min-width: 400px;
+  max-height: 80svh;
+  overflow: auto;
+  margin-block-end: 8px;
 }
 
 #OuterROPEWRAPPER {
