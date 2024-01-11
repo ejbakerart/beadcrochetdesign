@@ -210,6 +210,10 @@ body {
   margin: auto;
 }
 
+#save-button {
+  margin-inline-start: 25px;
+}
+
 #title h4,
 #title h2 {
   margin-block-start: 7px;
