@@ -67,27 +67,33 @@
     <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
     <fieldset id="VRP">
       <legend>Vertical Repeat</legend>
-      <div>
-        <label for="fREPEAT">Repeat</label>
-        <input type="number" style="width:70px;" id="fREPEAT" name="fREPEAT" >
-        <input type="button"  id="lockButton" value="Lock"></input>
+      <div id="vrp-grid">
+        <div id="params-grid">
+          <label for="fREPEAT">Repeat</label>
+          <input type="number" id="fREPEAT" name="fREPEAT" >
+          <input type="button" id="lockButton" value="Lock"></input>
+          <label for="fCircumference">Circumference</label>
+          <input type="number" id="fCircumference" name="fCircumference" >
+        </div>
+        <div class="beads-grid-item">
+          <div class="centered-scroller">
+            <svg id="VRPsvg" class="beads-svg" viewBox="0 0 15 15" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
+          </div>
+        </div>
+        <div class="right-justify">
+          <input type="button" id="export-vrp" value="Export SVG"></input>
+        </div>
       </div>
-      <div>
-        <label for="fCircumference">Circumference</label>
-        <input type="number" style="width:70px;" id="fCircumference" name="fCircumference" >
-      </div>
-      <svg id="VRPsvg" viewBox="0 0 15 15" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
-      <input type="button" id="export-vrp" value="Export SVG"></input>
     </fieldset>
 
     <fieldset id="undo-redo">
-      <div>
+      <div class="right-justify">
         <input type="button" value="Undo"></input>
         <input type="button" value="Redo"></input>
       </div>
     </fieldset>
 
-    <fieldset id="editing">
+    <fieldset id="editing" class="centered-scroller">
       <legend>Bead Color</legend>
       <div class="InputParams" id="ColorPicker">
         <label for="colorpicker">Color Picker:</label>
@@ -138,49 +144,41 @@
   <fieldset id="bead-plane">
     <legend>Bead Plane</legend>
     <div id="bp-grid">
-      <div id="bp-main">
-        <div id="bp-scroller">
-          <!-- <div id="bp-placeholder"></div> -->
-          <svg id="BPsvg" viewBox="0.8 0 39 49.5" width="640px"
+      <div class="beads-grid-item">
+        <div class="centered-scroller">
+          <svg id="BPsvg" class="beads-svg" viewBox="0.8 0 39 49.5"
             stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
         </div>
       </div>
-      <div class="right-justify">
-        <input type="button" id="export-svg" value="Export SVG"></input>
-        <input type="button" id="tile-button" value="Show Rectangular Tile"></input>
+      <div id="bp-buttons" class="right-justify">
+        <div>
+          <input type="button" id="export-svg" value="Export SVG"></input>
+          <input type="button" id="tile-button" value="Show Rectangular Tile"></input>
+        </div>
       </div>
     </div>
   </fieldset>
 
-
-<!--So with a lot of hacking I came up with this double wrapper scheme for managing the masking of the simulated rope.
-The outermost wrapper is what actually does the masking, with width set to a baseline of 32 for a 3-around and increasing by 7 with
-each increment of the circumference (so 4-around is 39, 5-around is 46, etc.).  Simultaneously, the middle div id=ROPEWRAPPER
-has to have its width adjusted with each change in the circumference, too.  Only it goes from a baseline of 61 for a 3-around,
-increasing by 15 with each increment of the circumference.  So 76 for 4-around, 91 for 5-around, etc.
-It's not clear to me why the increment is 15 and not 14, which is the bead diameter set in bead styles in the JS file.
-I've left the background colors in for now for debugging, but these should be removed or made gray eventually.
-I suspect I will need to make the vertical layout of the rope wider to get the twist function to work, in which
-case I will need to change the middle div to use a larger baseline than 61 for a 3-around to whatever is the full width of the
-multiple tilings of the vertical layout...  Note that the increments here are related to the bead diameter of 14 pixels.
-If that changes, this will not work properly any more, so I should set bead diameter to a fixed constant somewhere.
-Right now I have these set to 121 and 59, the correct numbers for a 7-around, which is what we initialize to.
-The overflow-x setting is what's causing the div borders to act like a mask.  Maybe there is a better way to do this...
-Also, the numbers are ever so slightly off, which is annoying.
--->
-
   <!-- create a spot for the 3D rope, which we will later fill in dynamically-->
-  <fieldset id="OuterROPEWRAPPER" >
+  <fieldset id="rope-preview" >
     <legend>Rope Preview</legend>
-    <input type="number" id="fTwist" name="fTwist" value="0">
-    <label for="fTwist">Twist</label>
-    <input type="button" value="Spin"></input>
-    <div id="ROPEWRAPPER">
-          <!-- overflow or overflow-x ? -->
-          <div id="ROPE">
-            <svg id="ROPEsvg" viewBox="0.8 0 39 49.5" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
-          </div>
+    <div id="rope-grid">
+      <div>
+        <div>
+          <label for="fTwist">Twist</label>
+          <input type="number" id="fTwist" name="fTwist" value="0">
         </div>
+        <input type="button" value="Spin"></input>  
+      </div>
+      <div class="beads-grid-item">
+        <div id="ROPE" class="centered-scroller">
+          <svg id="rope-svg" class="beads-svg" viewBox="17 3 7 42" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" >
+            <g id="ROPEsvg">
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
   </fieldset>
 
 </div> <!-- end of "central" -->

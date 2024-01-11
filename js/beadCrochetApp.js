@@ -40,6 +40,7 @@ const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //
 //to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
 //repeat bead number (as the book_index or stringing position in the repeat)
 
+const vrpBeadDiameter = 24;
 
 // This should be the source of truth, not the circles in the VR!
 let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
@@ -327,15 +328,15 @@ function refreshEverything(c, r, colorArray, resetRedo)
   colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
 
   syncRepeatToState();
-	paintRopeBeadplane(r);
-	//Change the rope's masking divs to new width settings appropriately sized for any new size rope
-	var innerElem = document.getElementById("ROPEWRAPPER");
-	var outerElem = document.getElementById("OuterROPEWRAPPER");
-	innerElem.style["width"] = innerbaseline + ((bead_width+1) * (c-minCircum));
-	outerElem.style["width"] = outerbaseline + (half_bead_width * (c-minCircum));
-	if (resetRedo)  //reset the REDO counter if the caller says to do so
-		remaining_redos = 0;
 
+  const viewbox = [ 17, 3, currentCircum, 42 ] .join( ' ' );
+  const svgElem = document .getElementById( 'rope-svg' );
+  svgElem .setAttribute( 'viewBox', viewbox );
+  // svgElem .style .width = currentCircum * beadDiameter * SOMETHING; // let's try it fixed-width first
+	paintRopeBeadplane(r);
+
+  if (resetRedo)  //reset the REDO counter if the caller says to do so
+		remaining_redos = 0;
 }
 
 //calculate and return the number of rows in a Repeat
@@ -355,14 +356,12 @@ function refreshEverything(c, r, colorArray, resetRedo)
 
 
 //Simulate twisting of the rope by rotating it according to the input angle
-function doTwist(angleInDegrees)  {
-if (angleInDegrees > 30) {
-	angleInDegrees = 30;
-
-}
-var element = document.getElementById('ROPE');
-element.style.transform = 'rotate(' + angleInDegrees + 'deg)';
-// or do this: element.style.transform = 'rotate(10deg)';
+function doTwist( angleInDegrees )
+{
+  if (angleInDegrees > 30) {
+    angleInDegrees = 30;
+  }
+  document .getElementById( 'ROPEsvg' ) .setAttribute( 'transform', `rotate(${angleInDegrees},17,24)` );
 }
 
 //There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
@@ -434,7 +433,7 @@ function createBeadPlane(where, tag)
 			if ( !tag ) { // only the beadplane is clickable
 				newCircle.onclick = () => beadPlaneClick( bpValues[i][j] );
 			}
-			document.getElementById(where+"svg").appendChild(newCircle);
+			document .getElementById( where+"svg" ) .appendChild(newCircle);
 		} //end inner for loop
 	} //end outer for loop
 }
@@ -523,10 +522,10 @@ function updateBeadPlane(c, r) {
 } //  end function updateBeadPlane
 
 //Update the painting on the beads in the beadplane that represents the simulated rope.
-function paintRopeBeadplane(r) {
-	var color = 'purple'; //throw in a random color for debugging purposes
-	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-		var rope_elem = document.getElementById("svg_beadPlane" + "rope" + i);
+function paintRopeBeadplane(r)
+{
+  for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
+		var rope_elem = document.getElementById("svg_beadPlanerope" + i);
 		let row = Number( rope_elem.getAttribute("row") );
 		let col = Number( rope_elem.getAttribute("col") );
 		var repeat_index = bpValues[row][col]; //find out what repeat bead this beadplane bead is associated with
@@ -581,7 +580,8 @@ function printRepeatInfoToConsole(){
 //Paint all the colors in the beadplane.  The "tag" parameter specifies and additional tag to identify which
 //beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
 //the rope bead plane.
-function clearBeadplane(incolor, tag) {
+function clearBeadplane(incolor, tag)
+{
 	for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + tag + i );
     circle .setAttribute( 'fill', incolor );
@@ -599,7 +599,8 @@ const paintAllBeads = ( color ) =>
 // then draw them all in a vertical repeat form.  This code can be a bit confusing because I think about creating the
 //repeat from the bottom up, but then this order had to be reversed in order to append things to the page top down in html,
 //  at least before we switched to SVG instead of divs.
-function createRepeat(c,r) {
+function createRepeat(c,r)
+{
 	var indented_row = true;
 	var double_row_length = (2*c)+1;
 	var excess = r % double_row_length;
@@ -669,9 +670,10 @@ function createRepeat(c,r) {
 			indented_row = true;
 		}
 	} //end while
-  const svg = document .getElementById( 'VRPsvg' );
   const viewboxArray = [ 0, 0, x+1, y+1 ];
-  svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
+  const svgElem = document .getElementById( 'VRPsvg' );
+  svgElem .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
+  svgElem .style .width = `${(currentCircum+1) * vrpBeadDiameter}px`;
 }
 
 // A function to map the repeat indices originally produced top-to-bottom-and-left-to-right to an ordering that is
