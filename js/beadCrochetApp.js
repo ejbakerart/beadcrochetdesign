@@ -311,6 +311,7 @@ function circumferenceGotSmaller()
 function refreshEverything(c, r, colorArray, resetRedo)
 {
 	reshapeRepeat(c, r);
+  reshapeRope();
 	//REPLACE THIS FOR LOOP WITH A LOOP THAT GOES THROUGH EVERY BEAD IN THE BEADPLANE, DETERMINES ITS
 	//CORRESPONDING BEAD IN THE REPEAT, GETS THE COLOR OF THAT BEAD FROM THE REPEAT, AND THEN PAINTS IT THAT COLOR -
 	//console.log("In refresh everything, c, r, and colorArray are " + c + " " + r);
@@ -329,10 +330,6 @@ function refreshEverything(c, r, colorArray, resetRedo)
 
   syncRepeatToState();
 
-  const viewbox = [ 17, 3, currentCircum, 42 ] .join( ' ' );
-  const svgElem = document .getElementById( 'rope-svg' );
-  svgElem .setAttribute( 'viewBox', viewbox );
-  // svgElem .style .width = currentCircum * beadDiameter * SOMETHING; // let's try it fixed-width first
 	paintRopeBeadplane(r);
 
   if (resetRedo)  //reset the REDO counter if the caller says to do so
@@ -361,7 +358,7 @@ function doTwist( angleInDegrees )
   if (angleInDegrees > 30) {
     angleInDegrees = 30;
   }
-  document .getElementById( 'ROPEsvg' ) .setAttribute( 'transform', `rotate(${angleInDegrees},17,24)` );
+  document .getElementById( 'ROPEsvg' ) .setAttribute( 'transform', `rotate(${angleInDegrees},19,24)` );
 }
 
 //There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
@@ -377,7 +374,7 @@ function reshapeRepeat( c, r )
 	else {
     document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
     document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
-
+  
     createRepeat(c,r); //create a new one
     createTile();
 		mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
@@ -388,6 +385,16 @@ function reshapeRepeat( c, r )
 		//createRope(c,r); //and create a new one
 	}
 }
+
+function reshapeRope()
+{
+  const width = currentCircum/2;
+  const viewbox = [ 19-width/2, 4, width, 42 ] .join( ' ' );
+  const svgElem = document .getElementById( 'rope-svg' );
+  svgElem .setAttribute( 'viewBox', viewbox );
+  // svgElem .style .width = currentCircum * beadDiameter * SOMETHING; // let's try it fixed-width first
+}
+
 //This function gets called when the `Color All` button is pushed.  It clears the colors from the beadplane and repeat.
 //It takes the repeat length as an input parameter.
 function handleColorAll()
@@ -1033,6 +1040,7 @@ function setup()
 	updateBeadPlane(currentCircum, currentRepeat);
 	syncRepeatToState();
 	createBeadPlane("ROPE", "rope");
+  reshapeRope();
 	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 
 	document.getElementById("ColorPicker").addEventListener("change", function() {

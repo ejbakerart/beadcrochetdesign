@@ -218,7 +218,7 @@ body {
 
 #central {
   display: grid;
-  grid-template-columns: 5fr 11fr 3fr;
+  grid-template-columns: 5fr 11fr 2fr;
   padding: 2px 4px 6px 4px;
   height: 100%;
 }
@@ -280,8 +280,14 @@ body {
   height: 100%;
 }
 
+#rope-controls {
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  gap: 5px;
+}
+
 #rope-svg {
-  width: 100px;
+  height: 80%;
 }
 
 /*   rectangular tile      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
