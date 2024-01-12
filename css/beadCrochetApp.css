@@ -141,7 +141,7 @@ fieldset {
 }
 
 label {
-  color: white;
+  color: rgb(76, 101, 118);
 }
 
 #file-selector {
@@ -220,9 +220,23 @@ body {
   margin-block-end: 10px;
 }
 
+#about-title {
+  margin: auto;
+}
+#about-prose {
+  display: inline-block;
+  /* max-width: 100px; */
+}
+
+/* #about-grid {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 16px;
+} */
+
 #central {
   display: grid;
-  grid-template-columns: 5fr 11fr 2fr;
+  grid-template-columns: 7fr 10fr 2fr;
   padding: 2px 4px 6px 4px;
   height: 100%;
 }
@@ -243,7 +257,7 @@ body {
 }
 
 #book-ad {
-  justify-content: center;
+  display: inline-block;
 }
 
 /*       vertical repeat        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
@@ -256,8 +270,9 @@ body {
 
 #params-grid {
   display: grid;
-  grid-template-columns: 4fr 3fr 3fr;
+  grid-template-columns: min-content min-content min-content;
   gap: 5px;
+  margin-inline-end: auto;
 }
 
 /*       bead plane        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */

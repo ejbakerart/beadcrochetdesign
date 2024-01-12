@@ -40,7 +40,7 @@ const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //
 //to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
 //repeat bead number (as the book_index or stringing position in the repeat)
 
-const vrpBeadDiameter = 24;
+const vrpBeadDiameter = 20;
 
 // This should be the source of truth, not the circles in the VR!
 let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
@@ -905,15 +905,16 @@ function adjust_circular_buffer_index(x, current_index, buffer_limit) {
 function lockbuttonToggle() {
 	//alert ("in lock toggle");
 	var elem = document.getElementById("lockButton");
-	if (elem.value == "LOCK") {
-		elem.value = "UNLOCK"; //toggle the button label to unlock, since we are locking
+	if (elem.value == "Lock") {
+		elem.value = "Unlock"; //toggle the button label to unlock, since we are locking
 		repeatLocked = true;
 	}
-	else if (elem.value == "UNLOCK") {
-		elem.value = "LOCK"; //toggle the button lable to lock, since we are unlocking
+	else if (elem.value == "Unlock") {
+		elem.value = "Lock"; //toggle the button lable to lock, since we are unlocking
 		repeatLocked = false;
 	}
 }
+
 //CURRENTLY USING THIS FUNCTION TO GET THE SAVE FILE WINDOW TO COME UP, BUT IT ONLY WORKS ON CHROME AND A FEW OTHER BROWSERS
 async function getNewFileHandle() {
   const options = {
