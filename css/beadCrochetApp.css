@@ -243,7 +243,7 @@ body {
 
 #controls-and-vrp {
   display: grid;
-  grid-template-rows: 55% 7% 43%;
+  grid-template-rows: 50% 7% 43%;
   height: 100%;
 }
 

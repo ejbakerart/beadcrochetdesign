@@ -45,12 +45,8 @@ const vrpBeadDiameter = 20;
 // This should be the source of truth, not the circles in the VR!
 let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
 
-
 let spin_offset = 0;
-const bead_width = 14; //###14 in pixels, changing these numbers may have repercussions...be careful (see beadCrochetApp.css --bead-width)
-const half_bead_width = 7;//###7
-const outerbaseline = 32; //###32these baselines are for the masking of the simulated rope. these are start values...
-const innerbaseline = 61; //###61...that get adjusted as the circumference changes...
+
 let repeatLocked = false; //true if the user locks the repeat length with the lock button
 
 // remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
@@ -977,50 +973,6 @@ function writeRepeatToFile(repeat_array, path, filename) {
 		}
 	})
 }
-//NOT USING...THIS ONE DOWNLOADED A FILE, BUT I DON'T WANT THAT AND THE URL
-//THAT I CALLED IT WITH WAS ALSO UNDEFINED...BUT I DON'T WANT TO DOWNLOAD THE FILE...
-//HERE'S THE CALL CODE
-//let textData = `El contenido del archivo
-//que sera descargado`;
-//let blobData = new Blob([textData], {type: "text/plain"});
-//let url = window.URL.createObjectURL(blobData);
-//let url = "/users/ellenbaker/junk/localFile.txt"; // LocalFileDownload
-//saveFile('archivo.txt',url);
-function saveFile(fileName,urlFile){
-    let a = document.createElement("a");
-    a.style = "display: none";
-    document.body.appendChild(a);
-    a.href = urlFile;
-    a.download = fileName;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    a.remove();
-}
-//I HAD TO USE THIS ONE TO GET SAVING TO WORK ON FIREFOX AND OTHER NON-CHROME BROWSERS - the saved file goes to the downloads folder
-// call it with FileSave(contents, "ChangeThisFilenameAndSave.txt"); where contents is the JSON stringified version of the contents array
-function FileSave(sourceText, fileIdentity) {
-    var workElement = document.createElement("a");
-    if ('download' in workElement) {
-        workElement.href = "data:" + 'text/plain' + "charset=utf-8," + escape(sourceText);
-        workElement.setAttribute("download", fileIdentity);
-        document.body.appendChild(workElement);
-        var eventMouse = document.createEvent("MouseEvents");
-        eventMouse.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        workElement.dispatchEvent(eventMouse);
-        document.body.removeChild(workElement);
-    } else throw 'File saving not supported for this browser';
-}
-
-async function getDir() {
-  const dirHandle = await window.showDirectoryPicker();
-	return(dirhandle);
-	//alert("directory handle is " + dirHandle);
-}
-//take an array saved to a text file using JSON and restore it to a javascript array
-function restoreArrayFromString(contents) {
-	var my_array = JSON.parse(contents);
-	return(my_array);
-}
 
 function setup()
 {
@@ -1029,10 +981,10 @@ function setup()
   document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
 
 	const aboutDialog = document.getElementById('about');
-  aboutDialog .addEventListener( 'click', () => aboutDialog .className += ' hidden' );
+  aboutDialog .addEventListener( 'click', () => aboutDialog .classList .add( 'hidden' ) );
 
 	const tileDialog = document.getElementById( 'tile-backdrop' );
-  tileDialog .addEventListener( 'click', () => tileDialog .className += ' hidden' );
+  tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
 
   createRepeat(currentCircum, currentRepeat);
 	mappingFunction(currentCircum, currentRepeat);
@@ -1070,9 +1022,7 @@ function setup()
     ;
   } );
 
-  document .getElementById( 'tile-button' ) .addEventListener( 'click', () => {
-    tileDialog .className = 'backdrop'; // remove 'hidden'
-  } );
+  document .getElementById( 'tile-button' ) .addEventListener( 'click', () => tileDialog .classList .remove( 'hidden' ) );
 
 	// watch out for the async in here that Mike made me put in to get the getNewFileHandle code to work
   document.querySelectorAll("input") .forEach( el => el .addEventListener( "click", async (e) => {
