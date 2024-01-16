@@ -138,6 +138,7 @@ fieldset {
   color: white;
   font-size: smaller;
   border-radius: 4px;
+  height: 100%;
 }
 
 label {
