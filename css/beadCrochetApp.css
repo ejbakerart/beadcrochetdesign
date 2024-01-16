@@ -138,6 +138,7 @@ fieldset {
   color: white;
   font-size: smaller;
   border-radius: 4px;
+  height: 100%;
 }
 
 label {
@@ -243,7 +244,7 @@ body {
 
 #controls-and-vrp {
   display: grid;
-  grid-template-rows: 55% 7% 43%;
+  grid-template-rows: 50% 7% 43%;
   height: 100%;
 }
 
