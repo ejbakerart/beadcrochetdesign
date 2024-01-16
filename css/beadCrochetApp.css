@@ -57,22 +57,20 @@ body {
 }
 
 .select-color {
-	border-width:1px;
-	border-style:solid;
-	border-color:black;
-	width:20px;
-	height:20px;
-	margin:3px;
-	display:inline-block;
+  box-sizing: content-box;
+	border: 1px solid black;
+	margin: 4px;
+	width: 20px;
+	height: 20px;
+	display: inline-block;
 }
 
 .selected-color {
-  border: 3px solid black;
-  /* margin: 1px; */
+  border: 5px solid #333333;
+  margin: 0px;
 }
 
 .box {
-  /* background-color: #2D2D2D; */
 	background-color: #111111;
 	background: orange;
   height: 2.2vw;
@@ -252,13 +250,26 @@ body {
 }
 
 #undo-redo {
-  margin-block-start: 0.4rem;
+  /* margin-block-start: 0.4rem; */
   display: flex;
   justify-content: center;
 }
 
 #book-ad {
   display: inline-block;
+}
+
+/*       bead colors        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+#color-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#new-color {
+  display: flex;
+  align-items: center;
 }
 
 /*       vertical repeat        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */

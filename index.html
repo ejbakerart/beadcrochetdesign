@@ -87,6 +87,7 @@
     </fieldset>
 
     <fieldset id="undo-redo">
+      <legend>History</legend>
       <div class="right-justify">
         <input type="button" value="Undo"></input>
         <input type="button" value="Redo"></input>
@@ -95,45 +96,42 @@
 
     <fieldset id="editing">
       <legend>Bead Color</legend>
-      <div class="InputParams" id="ColorPicker">
-        <label for="colorpicker">Color Picker:</label>
-        <input type="color" id="colorpicker" value="#257b98">
-        <input type="button" value="Add"></input>
-        <div class="color-picker" style="margin:10px;">
-          <div class="select-color" style="background-color:blue;"></div>
-          <div class="select-color" style="background-color:#C4A3F5;"></div>
-          <div class="select-color" style="background-color:red;"></div>
-          <div class="select-color" style="background-color:green;"></div>
-          <div class="select-color" style="background-color:black;"></div>
-          <div class="select-color" style="background-color:#00ff00;"></div>
-          <div class="select-color" style="background-color:#ffff00;"></div>
-          <div class="select-color" style="background-color:#02caca;"></div>
-          <br />
-          <div class="select-color" style="background-color:#ffd700;"></div>
-          <div class="select-color" style="background-color:#804000;"></div>
-          <div class="select-color" style="background-color:#ff9933;"></div>
-          <div class="select-color" style="background-color:#fff9cc;"></div>
-          <div class="select-color" style="background-color:#ff99cc;"></div>
-          <div class="select-color" style="background-color:#751aff;"></div>
-          <div class="select-color" style="background-color:#99ebff;"></div>
-          <div class="select-color" style="background-color:#8a8f8f;"></div>
-          <br />
-          <div class="select-color" id="color-0" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-1" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-2" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-3" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-4" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-5" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-6" style="background-color:#ffffff;"></div>
-          <div class="select-color" id="color-7" style="background-color:#ffffff;"></div>
-          <br />
-
-        </div>
+      <div id="ColorPicker" class="color-picker">
+        <div class="select-color" style="background-color:blue;"></div>
+        <div class="select-color" style="background-color:#C4A3F5;"></div>
+        <div class="select-color" style="background-color:red;"></div>
+        <div class="select-color" style="background-color:green;"></div>
+        <div class="select-color" style="background-color:black;"></div>
+        <div class="select-color" style="background-color:#00ff00;"></div>
+        <div class="select-color" style="background-color:#ffff00;"></div>
+        <div class="select-color" style="background-color:#02caca;"></div>
+        <div class="select-color" style="background-color:#ffd700;"></div>
+        <div class="select-color" style="background-color:#804000;"></div>
+        <div class="select-color" style="background-color:#ff9933;"></div>
+        <div class="select-color" style="background-color:#fff9cc;"></div>
+        <div class="select-color" style="background-color:#ff99cc;"></div>
+        <div class="select-color" style="background-color:#751aff;"></div>
+        <div class="select-color" style="background-color:#99ebff;"></div>
+        <div class="select-color" style="background-color:#8a8f8f;"></div>
+        <div class="select-color" id="color-0" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-1" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-2" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-3" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-4" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-5" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-6" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-7" style="background-color:#ffffff;"></div>
       </div>
 
+      <div id="color-actions">
+        <div id="new-color">
+          <input type="button" value="Add Color"></input>
+          <input type="color" id="color-picker" value="#257b98">
+        </div>
 
-      <div id="bulk-actions">
-        <input type="button" value="Color All"></input>
+        <div id="bulk-actions">
+          <input type="button" value="Color All"></input>
+        </div>
       </div>
     </fieldset>
 

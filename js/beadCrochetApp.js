@@ -7,7 +7,7 @@ let colorElement = document .querySelector( '.select-color' ); // returns the fi
 let colorClass = colorElement.style[ 'background-color' ];
 colorElement.classList .add( 'selected-color' );
 
-const colorPickerColor = "#257b98"; //gets set by the interactive color picker.
+let colorPickerColor = "#257b98"; //gets set by the interactive color picker.
 
 let currentCircum = 7;
 let currentRepeat = 57;
@@ -60,15 +60,16 @@ const builtInDesigns = {
 }
 
 const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
-/* if one of the color choices is clicked on, change colorClass to its color */
 
-document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", (e) => {
-    colorClass = el.style[ 'background-color' ];
-    colorElement.classList .remove( 'selected-color' );
-    el.classList .add( 'selected-color' );
-    colorElement = el;
-  })
-);
+/* if one of the color choices is clicked on, change colorClass to its color */
+const useColor = ( el ) =>
+{
+  colorClass = el.style[ 'background-color' ];
+  colorElement.classList .remove( 'selected-color' );
+  el.classList .add( 'selected-color' );
+  colorElement = el;
+}
+document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", () => useColor( el ) ) );
 
 
 
@@ -568,7 +569,7 @@ function syncRepeatToState()
 	for ( let i=1; i<=currentRepeat; i++) {
 		var elem = document.getElementById("bead" + i);
 		const color = elem.getAttribute("fill");
-		bookIndexToColor[Number(elem.getAttribute("book_index"))] = color;
+		bookIndexToColor[ Number(elem.getAttribute( "book_index" )) ] = color;
 	}
 }
 
@@ -751,11 +752,7 @@ function mappingFunction(c,r) {
 		}
 	}
 }
-//called when the user picks a new color from the color picker.  Just sets the global varial colorPickerColor
-function newColor(){
-	colorPickerColor = document.getElementById('colorpicker').value;
-	//alert ("newColor called with color " + color);
-}
+
 //called when the user pushes the ADD button (which means add the color picker color to the palette)
 function addToPalette(color) {
 	if (nextColor == maxColors-1) {
@@ -768,6 +765,7 @@ function addToPalette(color) {
 		var elem = document.getElementById('color-' + nextColor);
 		elem.style["background-color"]=color;
 		colorpicker[nextColor] = color;
+    useColor( elem );
 }
 
 function loadDesign( design )
@@ -996,9 +994,11 @@ function setup()
   reshapeRope();
 	saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
 
-	document.getElementById("ColorPicker").addEventListener("change", function() {
-  	newColor();
-	});
+  const colorPickerElem = document .getElementById("color-picker");
+  colorPickerElem .addEventListener( "change", () => {
+    colorPickerColor = colorPickerElem .value;
+  } );
+
 	document.addEventListener("keyup", function(event) {
 		   if (event.keyCode === 13) { //Enter key is pressed
 					update();
@@ -1044,7 +1044,7 @@ function setup()
 			case 'Redo':
 				redo();
 				break;
-			case 'Add':
+			case 'Add Color':
 				addToPalette(colorPickerColor);
 				break;
       case 'Open':
