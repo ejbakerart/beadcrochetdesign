@@ -324,18 +324,27 @@ body {
 /*   rectangular tile      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 #tile {
-  /* min-width: 1000px; */
+  height: 80svh;
+  width: 80svw;
   display: inline-block;
-  overflow: auto;
   background-color: #cccccc;
   padding: 1rem;
   border: 1px solid black;
   border-radius: 5px;
 }
 
+#tile-grid {
+  display: grid;
+  grid-template-rows: 1fr min-content;
+  height: 100%;
+}
+
 #tile-scroller {
-  min-width: 400px;
   max-height: 80svh;
   overflow: auto;
   margin-block-end: 8px;
+}
+
+#tile-svg {
+  height: 100%;
 }

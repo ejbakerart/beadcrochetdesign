@@ -9,6 +9,11 @@ colorElement.classList .add( 'selected-color' );
 
 let colorPickerColor = "#257b98"; //gets set by the interactive color picker.
 
+let beadBackground = '#cccccc';
+let beadBorderColor = 'grey';
+let beadBorderWidth = '0.06';
+let pixelsPerBead = 26; // for image output
+
 let currentCircum = 7;
 let currentRepeat = 57;
 let lastRepeat = 0;
@@ -455,8 +460,8 @@ const lcm = ( num1, num2 ) =>
   }
 }
 
-const beadDiameter = 4; // approx 2.8px/mm, so a 2mm bead in SVG
-const pixelsPerBead = 16; // for image output
+const beadDiameter = 1; // approx 2.8px/mm, so a 2mm bead in SVG
+const tileBeadDiameter = 10;
 
 function createTile()
 {
@@ -464,11 +469,13 @@ function createTile()
   const tileHeight = 2 * ( L / ( 2*currentCircum+1 ) );
 
   const svg = document .getElementById( 'tile-svg' );
+  svg .style .width = `${(currentRepeat+1) * tileBeadDiameter}px`;
   const viewboxArray = [ 0, 0, currentRepeat*beadDiameter, tileHeight*lineHeight*beadDiameter ];
   svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   const rect = document .getElementById( 'clip-rect' );
   rect .setAttribute( 'width', currentRepeat*beadDiameter );
   rect .setAttribute( 'height', tileHeight*lineHeight*beadDiameter );
+
 
   for ( let i=tileHeight+1; i>0; i-- ) {
     // TODO: replace computation of x and bead (copied from updateBeadPlane) with a simple function
@@ -983,6 +990,12 @@ function setup()
 
   const tileDialog = document.getElementById( 'tile-backdrop' );
   tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
+
+  document .querySelectorAll( "svg" ) .forEach( el => {
+    el .setAttribute( 'stroke', beadBorderColor );
+    el .setAttribute( 'stroke-width', beadBorderWidth );
+    el .style[ "background-color" ] = beadBackground;
+  } );
 
   createRepeat(currentCircum, currentRepeat);
   mappingFunction(currentCircum, currentRepeat);
