@@ -77,7 +77,7 @@
         </div>
         <div class="beads-grid-item">
           <div class="centered-scroller">
-            <svg id="VRPsvg" class="beads-svg" viewBox="0 0 15 15" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
+            <svg id="VRPsvg" class="beads-svg" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg" ></svg>
           </div>
         </div>
         <div class="right-justify">
@@ -144,8 +144,7 @@
     <div id="bp-grid">
       <div class="beads-grid-item">
         <div class="centered-scroller">
-          <svg id="BPsvg" class="beads-svg" viewBox="0.8 0 39 49.5"
-            stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" ></svg>
+          <svg id="BPsvg" class="beads-svg" viewBox="0.8 0 39 49.5" xmlns="http://www.w3.org/2000/svg" ></svg>
         </div>
       </div>
       <div id="bp-buttons" class="right-justify">
@@ -168,7 +167,7 @@
       </div>
       <div class="beads-grid-item">
         <div id="ROPE" class="centered-scroller">
-          <svg id="rope-svg" class="beads-svg" viewBox="17 3 7 42" stroke="grey" stroke-width="0.06" xmlns="http://www.w3.org/2000/svg" >
+          <svg id="rope-svg" class="beads-svg" viewBox="17 3 7 42" xmlns="http://www.w3.org/2000/svg" >
             <g id="ROPEsvg">
             </g>
           </svg>
@@ -183,21 +182,27 @@
     <div id="tile">
       <fieldset>
         <legend>Rectangular Tile</legend>
-        <div id="tile-scroller">
-          <svg id="tile-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
-            <!-- width and height 99s will be adjusted dynamically, above and below -->
-            <defs>
-              <clipPath id="clip">
-                <rect id="clip-rect" width="99" height="99" />
-              </clipPath>
-            </defs>
-            <g id="tile-group" clip-path="url(#clip)" >
-              <!-- bead circles added here dynamically-->
-            </g>
-          </svg>
+        <div id="tile-grid">
+          <div class="beads-grid-item">
+            <div class="centered-scroller">
+              <svg id="tile-svg" class="beads-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
+                <!-- width and height 99s will be adjusted dynamically, above and below -->
+                <defs>
+                  <clipPath id="clip">
+                    <rect id="clip-rect" width="99" height="99" />
+                  </clipPath>
+                </defs>
+                <g id="tile-group" clip-path="url(#clip)" >
+                  <!-- bead circles added here dynamically-->
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div id="tile-controls" class="right-justify">
+            <input type="button" id="export-tile" value="Export SVG"></input>
+            <input type="button" id="export-tile-png" value="Export PNG"></input>
+          </div>
         </div>
-        <input type="button" id="export-tile" value="Export SVG"></input>
-        <input type="button" id="export-tile-png" value="Export PNG"></input>
       </fieldset>
     </div>
   </div>
