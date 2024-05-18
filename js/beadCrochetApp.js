@@ -174,7 +174,6 @@ function repeatGotBigger()
     new_colours[i] = "white";
   }
   refreshEverything( new_colours, true);
-  saveToHistory( new_colours);
 }
 
 function repeatGotSmaller()
@@ -185,7 +184,6 @@ function repeatGotSmaller()
     new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
   }
   refreshEverything( new_colours, true);
-  saveToHistory( new_colours);
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
@@ -198,7 +196,6 @@ function circumferenceChangedRepeatLocked()
       new_colours[i] = bookIndexToColor[i];
     }
   refreshEverything( new_colours, true);
-  saveToHistory( new_colours);
 }
 
 //If the circumference increases, I've made a design choice to also increase the length of the repeat,
@@ -252,7 +249,6 @@ function circumferenceGotBigger()
   }
 
   refreshEverything( new_colours, true);
-  saveToHistory( new_colours);
 }
 
 function circumferenceGotSmaller()
@@ -296,7 +292,6 @@ function circumferenceGotSmaller()
     }
   }
   refreshEverything( new_colours, true);
-  saveToHistory( new_colours );
 }
 
 function commonRefresh()
@@ -334,8 +329,10 @@ function refreshEverything( colorArray, resetRedo )
 
   paintRopeBeadplane();
 
-  if (resetRedo)  //reset the REDO counter if the caller says to do so
+  if (resetRedo) { // not undoing or redoing
     remaining_redos = 0;
+    saveToHistory( colorArray );
+  }
 }
 
 //calculate and return the number of rows in a Repeat
@@ -765,7 +762,6 @@ function loadDesign( design )
   document.getElementById("fREPEAT") .value = currentRepeat;
   document.getElementById("fCircumference") .value = currentCircum;
   refreshEverything( design, true);
-  saveToHistory( design);
 }
 
 function loadFile( file )
