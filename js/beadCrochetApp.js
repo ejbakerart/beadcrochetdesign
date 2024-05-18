@@ -299,6 +299,16 @@ function circumferenceGotSmaller()
   saveToHistory( new_colours );
 }
 
+function commonRefresh()
+{
+  createRepeat();
+  createTile();
+  mappingFunction();
+  updateBeadPlane();
+  syncRepeatToState();
+  reshapeRope();
+}
+
 function refreshEverything( colorArray, resetRedo )
 {
   document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
@@ -306,12 +316,7 @@ function refreshEverything( colorArray, resetRedo )
 
   spin_offset = 0; //reset the spin offset
 
-  createRepeat();
-  createTile();
-  mappingFunction(); //for each bead in the repeat, fix it to store the "book index" of it's position
-  updateBeadPlane(); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
-  syncRepeatToState(); //set up some other arrays that make it easier to go between repeat and beadplane
-  reshapeRope();
+  commonRefresh();
 
   //paint the beadplane with the new array
   for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
@@ -325,7 +330,7 @@ function refreshEverything( colorArray, resetRedo )
   //and paint all beads with the new array
   colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
 
-  syncRepeatToState();  // why is this called again, if it was already called above?
+  syncRepeatToState();  // why is this called again, if it was already called in commonRefresh above?
 
   paintRopeBeadplane();
 
@@ -976,12 +981,7 @@ function setup()
   createBeadPlane('BP', emptystring);
   createBeadPlane("ROPE", "rope");
 
-  createRepeat();
-  createTile();
-  mappingFunction();
-  updateBeadPlane();
-  syncRepeatToState();
-  reshapeRope();
+  commonRefresh();
 
   saveToHistory( bookIndexToColor);
 
