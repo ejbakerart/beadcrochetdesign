@@ -80,12 +80,12 @@ document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener
 
 //save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
 //or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
-function saveToHistory(c,r, repeat_array)
+function saveToHistory( repeat_array)
 {
   const a = [];
-  a[0]=c;//save the circumfernce in the 0th element of a new array, since we don't use that slot for the repeat data
+  a[0]=currentCircum; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
 
-  for ( let i=1; i<=r; i++){ //save the current repeat state to the new array starting at index 1
+  for ( let i=1; i<=currentRepeat; i++){ //save the current repeat state to the new array starting at index 1
     a[i]=repeat_array[i];
   }
   historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit); //advance the historyIndex by 1 to a new slot
@@ -177,8 +177,8 @@ function repeatGotBigger()
   for ( let i=lastRepeat+1; i<=currentRepeat; i++){ //add new white beads at the end of the saved array
     new_colours[i] = "white";
   }
-  refreshEverything(currentCircum, currentRepeat, new_colours, true);
-  saveToHistory(currentCircum, currentRepeat, new_colours);
+  refreshEverything( new_colours, true);
+  saveToHistory( new_colours);
 }
 
 function repeatGotSmaller()
@@ -188,8 +188,8 @@ function repeatGotSmaller()
   for ( let i=1; i<=lastRepeat; i++) {
     new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
   }
-  refreshEverything(currentCircum, currentRepeat, new_colours, true);
-  saveToHistory(currentCircum, currentRepeat, new_colours);
+  refreshEverything( new_colours, true);
+  saveToHistory( new_colours);
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
@@ -201,8 +201,8 @@ function circumferenceChangedRepeatLocked()
   for ( let i=1; i<=currentRepeat; i++) {
       new_colours[i] = bookIndexToColor[i];
     }
-  refreshEverything(currentCircum, currentRepeat, new_colours, true);
-  saveToHistory(currentCircum, currentRepeat, new_colours);
+  refreshEverything( new_colours, true);
+  saveToHistory( new_colours);
 }
 
 //If the circumference increases, I've made a design choice to also increase the length of the repeat,
@@ -255,8 +255,8 @@ function circumferenceGotBigger()
     }
   }
 
-  refreshEverything(currentCircum, currentRepeat, new_colours, true);
-  saveToHistory(currentCircum, currentRepeat, new_colours);
+  refreshEverything( new_colours, true);
+  saveToHistory( new_colours);
 }
 
 function circumferenceGotSmaller()
@@ -299,8 +299,8 @@ function circumferenceGotSmaller()
       indented_row = true;
     }
   }
-  refreshEverything(currentCircum, currentRepeat, new_colours, true);
-  saveToHistory(currentCircum, currentRepeat, new_colours);
+  refreshEverything( new_colours, true);
+  saveToHistory( new_colours );
 }
 
 //This code refreshes the painted colors of the beadplane, the repeat, and the simulated rope.
@@ -310,9 +310,9 @@ function circumferenceGotSmaller()
 //the repeat colors assigned in the the input array.  Thus that array
 //must be filled in correctly before calling this function.  This function updates all the
 //other global arrays, with a call to syncRepeatToState.
-function refreshEverything(c, r, colorArray, resetRedo)
+function refreshEverything( colorArray, resetRedo )
 {
-  reshapeRepeat(c, r);
+  reshapeRepeat();
   reshapeRope();
   //REPLACE THIS FOR LOOP WITH A LOOP THAT GOES THROUGH EVERY BEAD IN THE BEADPLANE, DETERMINES ITS
   //CORRESPONDING BEAD IN THE REPEAT, GETS THE COLOR OF THAT BEAD FROM THE REPEAT, AND THEN PAINTS IT THAT COLOR -
@@ -332,7 +332,7 @@ function refreshEverything(c, r, colorArray, resetRedo)
 
   syncRepeatToState();
 
-  paintRopeBeadplane(r);
+  paintRopeBeadplane();
 
   if (resetRedo)  //reset the REDO counter if the caller says to do so
     remaining_redos = 0;
@@ -365,27 +365,19 @@ function doTwist( angleInDegrees )
 
 //There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
 //the repeat grows beyond the maximum.  There was an issue, I think I fixed it.
-function reshapeRepeat( c, r )
+function reshapeRepeat()
 {
-  if ((c > maxCircum) || (c < minCircum)) { //probably don't need these checks here -- we do it earlier in function update
-    alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
-  }
-  else if ((r > maxRepeat) || (r < minRepeat)) {
-    alert('Repeat length must be between ' + minRepeat + ' and ' + maxRepeat);
-  }
-  else {
     document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
     document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
   
-    createRepeat(c,r); //create a new one
+    createRepeat(); //create a new one
     createTile();
-    mappingFunction(c,r); //for each bead in the repeat, fix it to store the "book index" of it's position
-    updateBeadPlane(c,r); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
+    mappingFunction(); //for each bead in the repeat, fix it to store the "book index" of it's position
+    updateBeadPlane(); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
     syncRepeatToState(); //set up some other arrays that make it easier to go between repeat and beadplane
     spin_offset = 0; //reset the spin offset
     //removeRope(lastCircum,lastRepeat); //get rid of the old rope
     //createRope(c,r); //and create a new one
-  }
 }
 
 function reshapeRope()
@@ -405,7 +397,7 @@ function handleColorAll()
   clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
   clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
   syncRepeatToState();
-  saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
+  saveToHistory( bookIndexToColor);
   remaining_redos = 0;
 }
 
@@ -416,8 +408,8 @@ function beadPlaneClick( bookIndex )
   paintBeads( bookIndex, colorClass );
   paintCorrespondingBeads( bookIndex, colorClass );
   syncRepeatToState();
-  paintRopeBeadplane( currentRepeat );
-  saveToHistory( currentCircum, currentRepeat, bookIndexToColor );
+  paintRopeBeadplane();
+  saveToHistory( bookIndexToColor );
   remaining_redos = 0;
 }
 
@@ -512,7 +504,11 @@ function createTile()
 // ( ( (c*(row)) + ((row+1)/2+1) ) % repeatlength).
 //THis effectively places the repeat in the lower left of the beadplane and then tiles the repeats from there.
 //had to be a little careful because array indices started at 0 not 1, which impacted my formula above
-function updateBeadPlane(c, r) {
+function updateBeadPlane()
+{
+  const c = currentCircum;
+  const r = currentRepeat;
+
   var x = 0;
   for ( let row=1; row<=bpHeight; row++){
     x = ( ( (c*(row-1)) + (Math.floor(((row)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
@@ -533,7 +529,7 @@ function updateBeadPlane(c, r) {
 } //  end function updateBeadPlane
 
 //Update the painting on the beads in the beadplane that represents the simulated rope.
-function paintRopeBeadplane(r)
+function paintRopeBeadplane()
 {
   for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     var rope_elem = document.getElementById("svg_beadPlanerope" + i);
@@ -541,8 +537,8 @@ function paintRopeBeadplane(r)
     let col = Number( rope_elem.getAttribute("col") );
     var repeat_index = bpValues[row][col]; //find out what repeat bead this beadplane bead is associated with
     repeat_index = repeat_index + spin_offset; //add the spin offset to it
-    if (repeat_index > r) {
-      repeat_index = repeat_index % r;
+    if (repeat_index > currentRepeat) {
+      repeat_index = repeat_index % currentRepeat;
     }
     let color = bookIndexToColor[repeat_index];
     rope_elem .setAttribute( 'fill', color );
@@ -578,6 +574,7 @@ function syncRepeatToState()
     const color = elem.getAttribute("fill");
     bookIndexToColor[ Number(elem.getAttribute( "book_index" )) ] = color;
   }
+  // document .dispatchEvent( new CustomEvent( 'repeat-changed' ) );
 }
 
 //for debugging use
@@ -610,8 +607,11 @@ const paintAllBeads = ( color ) =>
 // then draw them all in a vertical repeat form.  This code can be a bit confusing because I think about creating the
 //repeat from the bottom up, but then this order had to be reversed in order to append things to the page top down in html,
 //  at least before we switched to SVG instead of divs.
-function createRepeat(c,r)
+function createRepeat()
 {
+  const c = currentCircum;
+  const r = currentRepeat;
+
   var indented_row = true;
   var double_row_length = (2*c)+1;
   var excess = r % double_row_length;
@@ -658,7 +658,7 @@ function createRepeat(c,r)
         paintCorrespondingBeads(beadnumber, colorClass);
         paintBeads( beadnumber, colorClass );
         paintRopeBeadplane(r);
-        saveToHistory(c, r, bookIndexToColor);
+        saveToHistory( bookIndexToColor );
         remaining_redos = 0;
       };
       document.getElementById('VRPsvg').append(newElement);
@@ -690,7 +690,10 @@ function createRepeat(c,r)
 // A function to map the repeat indices originally produced top-to-bottom-and-left-to-right to an ordering that is
 // bottom-to-top-and-left-to-right, i.e., into the standard order used for repeat patterns in the Crafting Conundrums book.
 //For each bead in the repeat, we give it an attribute called "book_index" that gives its standard order.
-function mappingFunction(c,r) {
+function mappingFunction()
+{
+  const c = currentCircum;
+  const r = currentRepeat;
   var indented_row = true;
   var double_row_length = (2*c)+1;
   var excess = r % double_row_length;
@@ -783,8 +786,8 @@ function loadDesign( design )
   currentCircum = Number(design[0]);
   document.getElementById("fREPEAT") .value = currentRepeat;
   document.getElementById("fCircumference") .value = currentCircum;
-  refreshEverything(currentCircum, currentRepeat, design, true);
-  saveToHistory(currentCircum, currentRepeat, design);
+  refreshEverything( design, true);
+  saveToHistory( design);
 }
 
 function loadFile( file )
@@ -839,7 +842,7 @@ function undo() {
   var c_elem = document.getElementById("fCircumference");
   r_elem.value = r;
   c_elem.value = c;
-   refreshEverything(c, r, temp_array, false);
+   refreshEverything( temp_array, false);
   remaining_undos--;
   remaining_redos++;
 }
@@ -864,7 +867,7 @@ function redo() {
   var c_elem = document.getElementById("fCircumference");
   r_elem.value = r;
   c_elem.value = c;
-   refreshEverything(c, r, temp_array, false);
+   refreshEverything( temp_array, false);
   remaining_undos++; //one more undo is now possible
   remaining_redos--;
 }
@@ -997,15 +1000,15 @@ function setup()
     el .style[ "background-color" ] = beadBackground;
   } );
 
-  createRepeat(currentCircum, currentRepeat);
-  mappingFunction(currentCircum, currentRepeat);
+  createRepeat();
+  mappingFunction();
   createBeadPlane('BP', emptystring);
   createTile();
-  updateBeadPlane(currentCircum, currentRepeat);
+  updateBeadPlane();
   syncRepeatToState();
   createBeadPlane("ROPE", "rope");
   reshapeRope();
-  saveToHistory(currentCircum, currentRepeat, bookIndexToColor);
+  saveToHistory( bookIndexToColor);
 
   const colorPickerElem = document .getElementById("color-picker");
   colorPickerElem .addEventListener( "change", () => {
