@@ -48,7 +48,7 @@ const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //
 const vrpBeadDiameter = 20;
 
 // This should be the source of truth, not the circles in the VR!
-let bookIndexToColor = new Array(maxRepeat); //this is the most important array for representing the state of the repeat.
+let bookIndexToColor = []; //this is the most important array for representing the state of the repeat.
 
 let spin_offset = 0;
 
@@ -80,14 +80,10 @@ document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener
 
 //save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
 //or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
-function saveToHistory( repeat_array)
+function saveToHistory( repeat_array )
 {
-  const a = [];
-  a[0]=currentCircum; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
+  const a = [ currentCircum, ...repeat_array ]; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
 
-  for ( let i=1; i<=currentRepeat; i++){ //save the current repeat state to the new array starting at index 1
-    a[i]=repeat_array[i];
-  }
   historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit); //advance the historyIndex by 1 to a new slot
   repeatHistory[historyIndex] = a; //save this new array in this next spot in the repeatHistory array
   //alert("saving to history array at index " + historyIndex);
@@ -296,16 +292,24 @@ function circumferenceGotSmaller()
 
 function commonRefresh()
 {
+  // TODO: combine and simplify these two, just loop over the repeat in normal order,
+  //  attach the bookIndex data, and compute positions in the VRP from that.
   createRepeat();
+  indexRepeatBeads();
+
   createTile();
-  mappingFunction();
   updateBeadPlane();
-  syncRepeatToState();
   reshapeRope();
 }
 
 function refreshEverything( colorArray, resetRedo )
 {
+  bookIndexToColor = colorArray .slice( 1 );
+  if (resetRedo) { // not undoing or redoing
+    remaining_redos = 0;
+    saveToHistory( bookIndexToColor );
+  }
+
   document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
   document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
 
@@ -323,16 +327,9 @@ function refreshEverything( colorArray, resetRedo )
   }
 
   //and paint all beads with the new array
-  colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
-
-  syncRepeatToState();  // why is this called again, if it was already called in commonRefresh above?
+  bookIndexToColor .forEach( ( color, i ) => paintBeads( i+1, color ) );
 
   paintRopeBeadplane();
-
-  if (resetRedo) { // not undoing or redoing
-    remaining_redos = 0;
-    saveToHistory( colorArray );
-  }
 }
 
 //calculate and return the number of rows in a Repeat
@@ -373,9 +370,10 @@ function reshapeRope()
 //It takes the repeat length as an input parameter.
 function handleColorAll()
 {
+  bookIndexToColor .map( (v,i,a) => a[i] = colorClass );
+  saveToHistory( bookIndexToColor );
+
   paintAllBeads( colorClass );
-  syncRepeatToState();
-  saveToHistory( bookIndexToColor);
   remaining_redos = 0;
 }
 
@@ -384,11 +382,19 @@ const lineHeight = Math.sqrt( 3 ) / 2;
 
 function beadColored( bookIndex )
 {
-  paintBeads( bookIndex, colorClass );
-  paintCorrespondingBeads( bookIndex, colorClass );
-  syncRepeatToState();
-  paintRopeBeadplane();
+  bookIndexToColor[ bookIndex-1 ] = colorClass;
   saveToHistory( bookIndexToColor );
+
+  paintBeads( bookIndex, colorClass );
+  for (let i = 1; i <= ((bpWidth) * (bpHeight)); i++) {
+    const circle = document.getElementById("svg_beadPlane" + i);
+    let row = Number(circle.getAttribute("row"));
+    let col = Number(circle.getAttribute("col"));
+    if (bookIndex == bpValues[row][col]) { //if this bead in the beadplane corresponds to bead number x in the repeat, paint it
+      circle.setAttribute('fill', colorClass);
+    }
+  }
+  paintRopeBeadplane();
   remaining_redos = 0;
 }
 
@@ -410,7 +416,10 @@ function createBeadPlane(where, tag)
       newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", j + (i%2 ? 0.5 : 1 ) );
       newCircle.setAttribute( "cy", 1 + lineHeight * ( bpHeight - i ) );
+
+      // TODO: get rid of bpValues, and create all bead displays the same way
       if ( !tag ) { // only the beadplane is clickable
+        //  bpValues is not available during create, but is initialized in updateBeadplane
         newCircle.onclick = () => beadColored( bpValues[i][j] );
       }
       document .getElementById( where+"svg" ) .appendChild(newCircle);
@@ -446,7 +455,7 @@ function createTile()
   const rect = document .getElementById( 'clip-rect' );
   rect .setAttribute( 'width', currentRepeat*beadDiameter );
   rect .setAttribute( 'height', tileHeight*lineHeight*beadDiameter );
-
+  const group = document .getElementById( "tile-group" );
 
   for ( let i=tileHeight+1; i>0; i-- ) {
     // TODO: replace computation of x and bead (copied from updateBeadPlane) with a simple function
@@ -462,12 +471,15 @@ function createTile()
         bead = x % currentRepeat; // setrepeat offset for this bead
         x++;
       }
+
+      // This is the magic that lets paintBeads() work
       newCircle .classList .add( 'bookindex-'+bead );
+
       newCircle.setAttribute( "r", beadDiameter/2 );
       newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", beadDiameter * (j - 1 + (i%2 ? 0 : 0.5 ) ) );
       newCircle.setAttribute( "cy", lineHeight * beadDiameter * ( tileHeight - i + 1 ) );
-      document .getElementById( "tile-group" ) .appendChild( newCircle );
+      group .appendChild( newCircle );
     }
   }
 }
@@ -513,7 +525,7 @@ function paintRopeBeadplane()
     var rope_elem = document.getElementById("svg_beadPlanerope" + i);
     let row = Number( rope_elem.getAttribute("row") );
     let col = Number( rope_elem.getAttribute("col") );
-    var repeat_index = bpValues[row][col]; //find out what repeat bead this beadplane bead is associated with
+    var repeat_index = bpValues[row][col] - 1; //find out what repeat bead this beadplane bead is associated with
     repeat_index = repeat_index + spin_offset; //add the spin offset to it
     if (repeat_index > currentRepeat) {
       repeat_index = repeat_index % currentRepeat;
@@ -522,37 +534,12 @@ function paintRopeBeadplane()
     rope_elem .setAttribute( 'fill', color );
   }
 }
-//When bead number x in the repeat is painted, paint all its corresponding beads
-//in the bead plane.  This function takes x and the bead color as input params
-function paintCorrespondingBeads(x, color){
-   for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-    const circle = document .getElementById( "svg_beadPlane" + i );
-    let row = Number( circle.getAttribute("row") );
-    let col = Number( circle.getAttribute("col") );
-    const temp = bpValues[row][col];
-    if (x == temp) { //if this bead in the beadplane corresponds to bead number x in the repeat, paint it
-      circle .setAttribute( 'fill', color );
-    }
-  }
-}
 
 const paintBeads = ( bead, color ) =>
 {
   for ( const circle of document .querySelectorAll( '.bookindex-'+bead ) ) {
     circle .setAttribute( 'fill', color );
   }
-}
-
-//  This is backwards.  bookIndexToColor should be the first thing touched, and this
-//   sync should update the VR bead circles to match.
-function syncRepeatToState()
-{
-  for ( let i=1; i<=currentRepeat; i++) {
-    var elem = document.getElementById("bead" + i);
-    const color = elem.getAttribute("fill");
-    bookIndexToColor[ Number(elem.getAttribute( "book_index" )) ] = color;
-  }
-  // document .dispatchEvent( new CustomEvent( 'repeat-changed' ) );
 }
 
 //for debugging use
@@ -571,7 +558,7 @@ const paintAllBeads = ( color ) =>
   }
 
   // TODO: GET RID OF CODE BELOW.  If all bead circles are properly class tagged, it will be covered in paintBeads()
-  
+
   //Paint all the colors in the beadplane.  The "tag" parameter specifies and additional tag to identify which
   //beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
   //the rope bead plane.
@@ -587,9 +574,9 @@ const paintAllBeads = ( color ) =>
 }
 
 // For each bead in the repeat, dynamically create a bead element for it, make it colorable by clicking, and
-// then draw them all in a vertical repeat form.  This code can be a bit confusing because I think about creating the
-//repeat from the bottom up, but then this order had to be reversed in order to append things to the page top down in html,
-//  at least before we switched to SVG instead of divs.
+// then draw them all in a vertical repeat form.  This code can be a bit confusing because we want to create the
+// repeat from the bottom up, and WE COULD DO THAT now that we are using SVG, but this loop still goes from the top row down,
+// because that's how it was done using divs.
 function createRepeat()
 {
   const c = currentCircum;
@@ -636,6 +623,7 @@ function createRepeat()
       newElement.setAttribute( "fill", 'white' );
       newElement.onclick = function() {
         newElement .setAttribute( 'fill', colorClass );
+        // currently, we don't know book_index until after indexRepeatBeads(), but there's no reason we couldn't know it here!
         const beadnumber = newElement .getAttribute('book_index');
         beadColored( beadnumber );
       };
@@ -668,7 +656,7 @@ function createRepeat()
 // A function to map the repeat indices originally produced top-to-bottom-and-left-to-right to an ordering that is
 // bottom-to-top-and-left-to-right, i.e., into the standard order used for repeat patterns in the Crafting Conundrums book.
 //For each bead in the repeat, we give it an attribute called "book_index" that gives its standard order.
-function mappingFunction()
+function indexRepeatBeads()
 {
   const c = currentCircum;
   const r = currentRepeat;
@@ -702,8 +690,9 @@ function mappingFunction()
     const elem = document.getElementById("bead" + (i+1));
     const bookIndex = top_row_start_index + i;
     elem .setAttribute("book_index", Number( bookIndex ));
+
+    // This is the magic that lets paintBeads() work
     elem .classList .add( 'bookindex-' + bookIndex );
-    //console.log("new index for " + oldIndex + " is " + Number(top_row_start_index + i));
   }
   if (top_row_length == r) { //if the top row is the only row, we're done
     return 0;
@@ -723,8 +712,10 @@ function mappingFunction()
       var elem = document.getElementById("bead" + i);
       newIndex = next_row_start_index + (j-1);
       elem.setAttribute("book_index", newIndex);
+
+      // This is the magic that lets paintBeads() work
       elem .classList .add( 'bookindex-' + newIndex );
-      //console.log("new index for " + oldIndex + " is " + newIndex);
+
       i++;
       if (indented_row && (j+1 == c+1)) {
         break; //we were at the end of an indented row, so jump out of the for loop 1 early
@@ -808,18 +799,18 @@ function undo() {
   }
   historyIndex = adjust_circular_buffer_index(-1, historyIndex, history_limit);
   //console.log("in undo. historyIndex adjusted to " + historyIndex);
-  var temp_array = repeatHistory[historyIndex];
-   var c = temp_array[0];
-   var r = temp_array.length - 1;
+  const temp_array = repeatHistory[historyIndex];
+  const c = temp_array[0];
+  const r = temp_array.length - 1;
   lastRepeat = currentRepeat; //Not sure what to be doing with these globals...???
   lastCircum = currentCircum;
   currentRepeat = r;
   currentCircum = c;
-  var r_elem = document.getElementById("fREPEAT");
-  var c_elem = document.getElementById("fCircumference");
+  const r_elem = document.getElementById("fREPEAT");
+  const c_elem = document.getElementById("fCircumference");
   r_elem.value = r;
   c_elem.value = c;
-   refreshEverything( temp_array, false);
+  refreshEverything( temp_array, false);
   remaining_undos--;
   remaining_redos++;
 }
@@ -833,18 +824,18 @@ function redo() {
   }
   historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit);
   //console.log("in redo. historyIndex adjusted to " + historyIndex);
-  var temp_array = repeatHistory[historyIndex];
-   var c = temp_array[0];
-   var r = temp_array.length - 1;
+  const temp_array = repeatHistory[historyIndex];
+  const c = temp_array[0];
+  const r = temp_array.length - 1;
   lastRepeat = currentRepeat; //Not sure what to be doing with these globals...???
   lastCircum = currentCircum;
   currentRepeat = r;
   currentCircum = c;
-  var r_elem = document.getElementById("fREPEAT");
-  var c_elem = document.getElementById("fCircumference");
+  const r_elem = document.getElementById("fREPEAT");
+  const c_elem = document.getElementById("fCircumference");
   r_elem.value = r;
   c_elem.value = c;
-   refreshEverything( temp_array, false);
+  refreshEverything( temp_array, false);
   remaining_undos++; //one more undo is now possible
   remaining_redos--;
 }
@@ -965,6 +956,10 @@ function setup()
   document .getElementById( 'fREPEAT' )        .setAttribute( 'value', currentRepeat );
   document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
 
+  for (let index = 0; index < currentRepeat; index++) {
+    bookIndexToColor .push( "white" );
+  }
+
   const aboutDialog = document.getElementById('about');
   aboutDialog .addEventListener( 'click', () => aboutDialog .classList .add( 'hidden' ) );
 
@@ -982,7 +977,7 @@ function setup()
 
   commonRefresh();
 
-  saveToHistory( bookIndexToColor);
+  saveToHistory( bookIndexToColor );
 
   const colorPickerElem = document .getElementById("color-picker");
   colorPickerElem .addEventListener( "change", () => {
@@ -1058,7 +1053,7 @@ function setup()
         if (spin_offset == (currentRepeat)) {
           spin_offset = 0;
         }
-        paintRopeBeadplane(currentRepeat);
+        paintRopeBeadplane();
         break;
     }
     //if it wasn't any of above buttons, must have been a change to repeat or circum,
