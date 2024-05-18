@@ -128,10 +128,6 @@ function update()
   //circumference at the same time, and circumference changes take precedence over repeat changes,
   //since changes the circumference also changes the repeat, but not vice versa.
   if ((currentCircum != lastCircum) || (currentRepeat != lastRepeat)) {
-    //alert("cleared beadplane");
-    paintAllBeads( 'white' );
-    clearBeadplane("white", emptystring); // if there are changes, the beadplanes will have to be repainted, so clear first
-    clearBeadplane("white", "rope"); //we need to clear both the main beadplane and the rope beadplane
     if (currentCircum > lastCircum) {
       if (repeatLocked)
         circumferenceChangedRepeatLocked();
@@ -303,21 +299,20 @@ function circumferenceGotSmaller()
   saveToHistory( new_colours );
 }
 
-//This code refreshes the painted colors of the beadplane, the repeat, and the simulated rope.
-//It got duplicated at the end of each of the functions for dealing with changes in the
-//repeat and circumference, so it seemed cleaner to turn it into a separate function.
-//It repaints everything on the screen based solely on the input values of c and r and
-//the repeat colors assigned in the the input array.  Thus that array
-//must be filled in correctly before calling this function.  This function updates all the
-//other global arrays, with a call to syncRepeatToState.
 function refreshEverything( colorArray, resetRedo )
 {
-  reshapeRepeat();
+  document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
+  document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
+
+  spin_offset = 0; //reset the spin offset
+
+  createRepeat();
+  createTile();
+  mappingFunction(); //for each bead in the repeat, fix it to store the "book index" of it's position
+  updateBeadPlane(); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
+  syncRepeatToState(); //set up some other arrays that make it easier to go between repeat and beadplane
   reshapeRope();
-  //REPLACE THIS FOR LOOP WITH A LOOP THAT GOES THROUGH EVERY BEAD IN THE BEADPLANE, DETERMINES ITS
-  //CORRESPONDING BEAD IN THE REPEAT, GETS THE COLOR OF THAT BEAD FROM THE REPEAT, AND THEN PAINTS IT THAT COLOR -
-  //console.log("In refresh everything, c, r, and colorArray are " + c + " " + r);
-  //console.log(colorArray);
+
   //paint the beadplane with the new array
   for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
     const circle = document .getElementById( "svg_beadPlane" + i );
@@ -330,7 +325,7 @@ function refreshEverything( colorArray, resetRedo )
   //and paint all beads with the new array
   colorArray .forEach( ( color, i ) => ( i >= 1 ) && paintBeads( i, color ) );
 
-  syncRepeatToState();
+  syncRepeatToState();  // why is this called again, if it was already called above?
 
   paintRopeBeadplane();
 
@@ -363,23 +358,6 @@ function doTwist( angleInDegrees )
   document .getElementById( 'ROPEsvg' ) .setAttribute( 'transform', `rotate(${angleInDegrees},19,24)` );
 }
 
-//There might be an issue in reshapeRepeat at the limit of a big repeat -- if the user changes the circumference such that
-//the repeat grows beyond the maximum.  There was an issue, I think I fixed it.
-function reshapeRepeat()
-{
-    document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
-    document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
-  
-    createRepeat(); //create a new one
-    createTile();
-    mappingFunction(); //for each bead in the repeat, fix it to store the "book index" of it's position
-    updateBeadPlane(); //for each bead in the bead plane, set up the global array that indicates which bead it maps to in the repeat
-    syncRepeatToState(); //set up some other arrays that make it easier to go between repeat and beadplane
-    spin_offset = 0; //reset the spin offset
-    //removeRope(lastCircum,lastRepeat); //get rid of the old rope
-    //createRope(c,r); //and create a new one
-}
-
 function reshapeRope()
 {
   const width = currentCircum/2;
@@ -403,7 +381,8 @@ function handleColorAll()
 
 const lineHeight = Math.sqrt( 3 ) / 2;
 
-function beadPlaneClick( bookIndex )
+
+function beadColored( bookIndex )
 {
   paintBeads( bookIndex, colorClass );
   paintCorrespondingBeads( bookIndex, colorClass );
@@ -432,7 +411,7 @@ function createBeadPlane(where, tag)
       newCircle.setAttribute( "cx", j + (i%2 ? 0.5 : 1 ) );
       newCircle.setAttribute( "cy", 1 + lineHeight * ( bpHeight - i ) );
       if ( !tag ) { // only the beadplane is clickable
-        newCircle.onclick = () => beadPlaneClick( bpValues[i][j] );
+        newCircle.onclick = () => beadColored( bpValues[i][j] );
       }
       document .getElementById( where+"svg" ) .appendChild(newCircle);
     } //end inner for loop
@@ -523,10 +502,9 @@ function updateBeadPlane()
         //console.log(row, bead, x%r);
         x++;
       }
-    } //end inner for loop
-  } //end outer for loop
-  //console.log(bpValues);
-} //  end function updateBeadPlane
+    }
+  }
+}
 
 //Update the painting on the beads in the beadplane that represents the simulated rope.
 function paintRopeBeadplane()
@@ -654,12 +632,7 @@ function createRepeat()
       newElement.onclick = function() {
         newElement .setAttribute( 'fill', colorClass );
         const beadnumber = newElement .getAttribute('book_index');
-        syncRepeatToState();
-        paintCorrespondingBeads(beadnumber, colorClass);
-        paintBeads( beadnumber, colorClass );
-        paintRopeBeadplane(r);
-        saveToHistory( bookIndexToColor );
-        remaining_redos = 0;
+        beadColored( beadnumber );
       };
       document.getElementById('VRPsvg').append(newElement);
       j++;
@@ -1000,14 +973,16 @@ function setup()
     el .style[ "background-color" ] = beadBackground;
   } );
 
-  createRepeat();
-  mappingFunction();
   createBeadPlane('BP', emptystring);
+  createBeadPlane("ROPE", "rope");
+
+  createRepeat();
   createTile();
+  mappingFunction();
   updateBeadPlane();
   syncRepeatToState();
-  createBeadPlane("ROPE", "rope");
   reshapeRope();
+
   saveToHistory( bookIndexToColor);
 
   const colorPickerElem = document .getElementById("color-picker");
