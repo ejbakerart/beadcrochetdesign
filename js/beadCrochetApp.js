@@ -374,8 +374,6 @@ function reshapeRope()
 function handleColorAll()
 {
   paintAllBeads( colorClass );
-  clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
-  clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
   syncRepeatToState();
   saveToHistory( bookIndexToColor);
   remaining_redos = 0;
@@ -565,22 +563,27 @@ function printRepeatInfoToConsole(){
   }
 }
 
-//Paint all the colors in the beadplane.  The "tag" parameter specifies and additional tag to identify which
-//beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
-//the rope bead plane.
-function clearBeadplane(incolor, tag)
-{
-  for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-    const circle = document .getElementById( "svg_beadPlane" + tag + i );
-    circle .setAttribute( 'fill', incolor );
-  }
-}
 
 const paintAllBeads = ( color ) =>
 {
   for (let index = 1; index <= currentRepeat; index++) {
     paintBeads( index, color );
   }
+
+  // TODO: GET RID OF CODE BELOW.  If all bead circles are properly class tagged, it will be covered in paintBeads()
+  
+  //Paint all the colors in the beadplane.  The "tag" parameter specifies and additional tag to identify which
+  //beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
+  //the rope bead plane.
+  function clearBeadplane(incolor, tag)
+  {
+    for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
+      const circle = document .getElementById( "svg_beadPlane" + tag + i );
+      circle .setAttribute( 'fill', incolor );
+    }
+  }
+  clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
+  clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
 }
 
 // For each bead in the repeat, dynamically create a bead element for it, make it colorable by clicking, and
