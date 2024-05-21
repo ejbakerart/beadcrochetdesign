@@ -161,37 +161,19 @@ function update()
 
 function repeatGotBigger()
 {
-  const new_colours = new Array(currentRepeat+1); //need extra slot because we store circum in slot 0 and use 1-n for repeat
-
-  for ( let i=1; i<=lastRepeat; i++) {
-    new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
-  }
-  for ( let i=lastRepeat+1; i<=currentRepeat; i++){ //add new white beads at the end of the saved array
-    new_colours[i] = "white";
-  }
-  refreshEverything( new_colours, true);
+  refreshEverything( [ currentRepeat, ...bookIndexToColor, "white" ], true );
 }
 
 function repeatGotSmaller()
 {
-  const new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
-
-  for ( let i=1; i<=lastRepeat; i++) {
-    new_colours[i] = bookIndexToColor[i]; //save off the old painting of the Repeat
-  }
-  refreshEverything( new_colours, true);
+  refreshEverything( [ currentRepeat, ...bookIndexToColor.slice( 0, currentRepeat ) ], true );
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
 function circumferenceChangedRepeatLocked()
 {
   lastRepeat = currentRepeat;
-  const new_colours = new Array(currentRepeat+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
-  //copy the bead colors, lopping off the ones on the right of the Repeat to reduce the circumference
-  for ( let i=1; i<=currentRepeat; i++) {
-      new_colours[i] = bookIndexToColor[i];
-    }
-  refreshEverything( new_colours, true);
+  refreshEverything( [ currentRepeat, ...bookIndexToColor.slice( 0, currentRepeat ) ], true );
 }
 
 //If the circumference increases, I've made a design choice to also increase the length of the repeat,
@@ -240,10 +222,11 @@ function circumferenceGotBigger()
       i+=(delta-1);
     }
     else {
-      new_colours[i] = bookIndexToColor[old_i];
+      new_colours[i] = bookIndexToColor[old_i-1];
     }
   }
 
+  new_colours[ 0 ] = currentRepeat;
   refreshEverything( new_colours, true);
 }
 
@@ -271,12 +254,12 @@ function circumferenceGotSmaller()
   for ( let i=0; i<num_rows; i++) {
     for ( let j=1; j<=(lastCircum-delta); j++)  {
       if(index > (revised_r+1)) {break;}
-      new_colours[index] = bookIndexToColor[index+(delta*i)];
+      new_colours[index] = bookIndexToColor[index+(delta*i)-1];
       //console.log(index + " coming from " + (index+(delta*i)));
       index++
     }
     if (!indented_row && (index<=revised_r+1)) {
-      new_colours[index] = bookIndexToColor[index+(delta*i)];
+      new_colours[index] = bookIndexToColor[index+(delta*i)-1];
       //console.log(index + " coming from " + (index+(delta*i)));
       index++
     }
@@ -287,6 +270,7 @@ function circumferenceGotSmaller()
       indented_row = true;
     }
   }
+  new_colours[ 0 ] = currentRepeat;
   refreshEverything( new_colours, true);
 }
 
