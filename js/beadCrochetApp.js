@@ -297,9 +297,39 @@ function commonRefresh()
   createRepeat();
   indexRepeatBeads();
 
+  rebuildColoredNumbers();
+
   createTile();
   updateBeadPlane();
   reshapeRope();
+}
+
+function rebuildColoredNumbers()
+{
+  const group = document .getElementById( "colored-numbers" )
+  group .replaceChildren(); // remove the old numbers
+
+  let color;
+  let count = 0;
+  const emitSpan = () =>
+  {
+    const span = document .createElement( 'span' );
+    span .style .color = color;
+    span .textContent = count + ' ';
+    group .appendChild( span );
+  }
+  for (const beadColor of bookIndexToColor) {
+    if ( beadColor === color ) {
+      ++count;
+    } else {
+      // emit the span for the last color
+      color && emitSpan();
+      // start on a new one
+      count = 1;
+      color = beadColor;
+    }
+  }
+  emitSpan();
 }
 
 function refreshEverything( colorArray, resetRedo )
@@ -395,6 +425,7 @@ function beadColored( bookIndex )
     }
   }
   paintRopeBeadplane();
+  rebuildColoredNumbers();
   remaining_redos = 0;
 }
 
@@ -571,6 +602,7 @@ const paintAllBeads = ( color ) =>
   }
   clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
   clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
+  rebuildColoredNumbers();
 }
 
 // For each bead in the repeat, dynamically create a bead element for it, make it colorable by clicking, and

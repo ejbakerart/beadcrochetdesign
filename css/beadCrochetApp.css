@@ -242,7 +242,7 @@ body {
 
 #controls-and-vrp {
   display: grid;
-  grid-template-rows: 50% 7% 43%;
+  grid-template-rows: 60% 7% 33%;
   height: 100%;
 }
 
@@ -276,7 +276,7 @@ body {
 
 #vrp-grid {
   display: grid;
-  grid-template-rows: min-content 1fr min-content;
+  grid-template-rows: min-content 1fr min-content min-content;
   height: 100%;
 }
 
@@ -285,6 +285,13 @@ body {
   grid-template-columns: min-content min-content min-content;
   gap: 5px;
   margin-inline-end: auto;
+}
+
+#colored-numbers {
+  font-weight: bold;
+  font-size: large;
+  word-spacing: 4px;
+  margin-block-end: 20px;
 }
 
 /*       bead plane        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
