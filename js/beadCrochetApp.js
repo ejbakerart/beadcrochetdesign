@@ -963,6 +963,18 @@ function writeRepeatToFile(repeat_array, path, filename) {
   })
 }
 
+const setBorderColor = color =>
+{
+  document .getElementById( 'border-color' ) .style .backgroundColor = color;
+  document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke', color ) );
+}
+
+const setBackgroundColor = color =>
+{
+  document .getElementById( 'bkgd-color' ) .style .backgroundColor = color;
+  document .querySelectorAll( "svg" ) .forEach( el => el .style[ "background-color" ] = color );
+}
+  
 function setup()
 {
   // No more hard-coding in the HTML
@@ -979,11 +991,12 @@ function setup()
   const tileDialog = document.getElementById( 'tile-backdrop' );
   tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
 
-  document .querySelectorAll( "svg" ) .forEach( el => {
-    el .setAttribute( 'stroke', beadBorderColor );
-    el .setAttribute( 'stroke-width', beadBorderWidth );
-    el .style[ "background-color" ] = beadBackground;
-  } );
+  setBorderColor( beadBorderColor );
+  setBackgroundColor( beadBackground );
+  document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke-width', beadBorderWidth ) );
+
+  document .getElementById( "set-border-color" ) .addEventListener( 'click', () => setBorderColor( colorClass ) );
+  document .getElementById( "set-bkgd-color" ) .addEventListener( 'click', () => setBackgroundColor( colorClass ) );
 
   createBeadPlane('BP', emptystring);
   createBeadPlane("ROPE", "rope");
@@ -1068,6 +1081,8 @@ function setup()
         }
         paintRopeBeadplane();
         break;
+      case 'Set':
+        return; // style buttons handled by dedicated listeners
     }
     //if it wasn't any of above buttons, must have been a change to repeat or circum,
     //or a painted bead, so call the update function

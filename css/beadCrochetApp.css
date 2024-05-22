@@ -56,6 +56,7 @@ body {
 	font-size: 12px;
 }
 
+.show-color,
 .select-color {
   box-sizing: content-box;
 	border: 1px solid black;
@@ -242,7 +243,7 @@ body {
 
 #controls-and-vrp {
   display: grid;
-  grid-template-rows: 60% 7% 33%;
+  grid-template-rows: 1fr min-content min-content min-content;
   height: 100%;
 }
 
@@ -270,6 +271,17 @@ body {
 #new-color {
   display: flex;
   align-items: center;
+}
+
+/*       bead display style     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+#style-grid {
+  display: grid;
+  grid-template-columns: 5rem min-content min-content 1fr;
+}
+
+#border-width {
+  display: flex;
 }
 
 /*       vertical repeat        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
