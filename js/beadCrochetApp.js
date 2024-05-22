@@ -48,7 +48,7 @@ const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //
 const vrpBeadDiameter = 20;
 
 // This should be the source of truth, not the circles in the VR!
-let bookIndexToColor = []; //this is the most important array for representing the state of the repeat.
+let repeatColors = []; //this is the most important array for representing the state of the repeat.
 
 let spin_offset = 0;
 
@@ -80,20 +80,17 @@ document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener
 
 //save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
 //or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
-function saveToHistory( repeat_array )
+function saveToHistory()
 {
-  const a = [ currentCircum, ...repeat_array ]; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
+  // TODO: make an object, not this array
+  const a = [ currentCircum, ...repeatColors ]; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
 
   historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit); //advance the historyIndex by 1 to a new slot
   repeatHistory[historyIndex] = a; //save this new array in this next spot in the repeatHistory array
-  //alert("saving to history array at index " + historyIndex);
   remaining_undos++;
   if (remaining_undos >= history_limit) {//stop accruing potential undos when we reach the global limit
     remaining_undos = history_limit-1;
   }
-  //console.log("in saveToHistory. After save, historyIndex is " + historyIndex + " remaining_undos is " + remaining_undos + " remaining_redos is " + remaining_redos); //for debugging
-  //console.log("c and r  and repeat_array are " + c + " " + r);
-  //console.log(repeat_array);
 }
 
 //The function that gets called when the user changes the repeat or circumference parameters, or the
@@ -161,19 +158,19 @@ function update()
 
 function repeatGotBigger()
 {
-  refreshEverything( [ currentRepeat, ...bookIndexToColor, "white" ], true );
+  refreshEverything( [ currentRepeat, ...repeatColors, "white" ], true );
 }
 
 function repeatGotSmaller()
 {
-  refreshEverything( [ currentRepeat, ...bookIndexToColor.slice( 0, currentRepeat ) ], true );
+  refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
 function circumferenceChangedRepeatLocked()
 {
   lastRepeat = currentRepeat;
-  refreshEverything( [ currentRepeat, ...bookIndexToColor.slice( 0, currentRepeat ) ], true );
+  refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
 }
 
 //If the circumference increases, I've made a design choice to also increase the length of the repeat,
@@ -222,7 +219,7 @@ function circumferenceGotBigger()
       i+=(delta-1);
     }
     else {
-      new_colours[i] = bookIndexToColor[old_i-1];
+      new_colours[i] = repeatColors[old_i-1];
     }
   }
 
@@ -254,12 +251,12 @@ function circumferenceGotSmaller()
   for ( let i=0; i<num_rows; i++) {
     for ( let j=1; j<=(lastCircum-delta); j++)  {
       if(index > (revised_r+1)) {break;}
-      new_colours[index] = bookIndexToColor[index+(delta*i)-1];
+      new_colours[index] = repeatColors[index+(delta*i)-1];
       //console.log(index + " coming from " + (index+(delta*i)));
       index++
     }
     if (!indented_row && (index<=revised_r+1)) {
-      new_colours[index] = bookIndexToColor[index+(delta*i)-1];
+      new_colours[index] = repeatColors[index+(delta*i)-1];
       //console.log(index + " coming from " + (index+(delta*i)));
       index++
     }
@@ -302,7 +299,7 @@ function rebuildColoredNumbers()
     span .textContent = count + ' ';
     group .appendChild( span );
   }
-  for (const beadColor of bookIndexToColor) {
+  for (const beadColor of repeatColors) {
     if ( beadColor === color ) {
       ++count;
     } else {
@@ -318,10 +315,10 @@ function rebuildColoredNumbers()
 
 function refreshEverything( colorArray, resetRedo )
 {
-  bookIndexToColor = colorArray .slice( 1 );
+  repeatColors = colorArray .slice( 1 );
   if (resetRedo) { // not undoing or redoing
     remaining_redos = 0;
-    saveToHistory( bookIndexToColor );
+    saveToHistory();
   }
 
   document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
@@ -341,7 +338,7 @@ function refreshEverything( colorArray, resetRedo )
   }
 
   //and paint all beads with the new array
-  bookIndexToColor .forEach( ( color, i ) => paintBeads( i+1, color ) );
+  repeatColors .forEach( ( color, i ) => paintBeads( i+1, color ) );
 
   paintRopeBeadplane();
 }
@@ -384,8 +381,8 @@ function reshapeRope()
 //It takes the repeat length as an input parameter.
 function handleColorAll()
 {
-  bookIndexToColor .map( (v,i,a) => a[i] = colorClass );
-  saveToHistory( bookIndexToColor );
+  repeatColors .map( (v,i,a) => a[i] = colorClass );
+  saveToHistory();
 
   paintAllBeads( colorClass );
   remaining_redos = 0;
@@ -396,8 +393,8 @@ const lineHeight = Math.sqrt( 3 ) / 2;
 
 function beadColored( bookIndex )
 {
-  bookIndexToColor[ bookIndex-1 ] = colorClass;
-  saveToHistory( bookIndexToColor );
+  repeatColors[ bookIndex-1 ] = colorClass;
+  saveToHistory();
 
   paintBeads( bookIndex, colorClass );
   for (let i = 1; i <= ((bpWidth) * (bpHeight)); i++) {
@@ -545,7 +542,7 @@ function paintRopeBeadplane()
     if (repeat_index > currentRepeat) {
       repeat_index = repeat_index % currentRepeat;
     }
-    let color = bookIndexToColor[repeat_index];
+    let color = repeatColors[repeat_index];
     rope_elem .setAttribute( 'fill', color );
   }
 }
@@ -973,7 +970,7 @@ function setup()
   document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
 
   for (let index = 0; index < currentRepeat; index++) {
-    bookIndexToColor .push( "white" );
+    repeatColors .push( "white" );
   }
 
   const aboutDialog = document.getElementById('about');
@@ -993,7 +990,7 @@ function setup()
 
   commonRefresh();
 
-  saveToHistory( bookIndexToColor );
+  saveToHistory();
 
   const colorPickerElem = document .getElementById("color-picker");
   colorPickerElem .addEventListener( "change", () => {
