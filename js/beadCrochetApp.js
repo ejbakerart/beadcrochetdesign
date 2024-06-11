@@ -276,7 +276,6 @@ function commonRefresh()
   // TODO: combine and simplify these two, just loop over the repeat in normal order,
   //  attach the bookIndex data, and compute positions in the VRP from that.
   createRepeat();
-  indexRepeatBeads();
 
   rebuildColoredNumbers();
 
@@ -554,14 +553,6 @@ const paintBeads = ( bead, color ) =>
   }
 }
 
-//for debugging use
-function printRepeatInfoToConsole(){
-  for ( let i=1; i<=currentRepeat; i++) {
-    var elem = document.getElementById("bead" + i);
-    console.log("bead" + i + " is book_index " + Number(elem.getAttribute("book_index")));
-  }
-}
-
 
 const paintAllBeads = ( color ) =>
 {
@@ -586,161 +577,48 @@ const paintAllBeads = ( color ) =>
   rebuildColoredNumbers();
 }
 
-// For each bead in the repeat, dynamically create a bead element for it, make it colorable by clicking, and
-// then draw them all in a vertical repeat form.  This code can be a bit confusing because we want to create the
-// repeat from the bottom up, and WE COULD DO THAT now that we are using SVG, but this loop still goes from the top row down,
-// because that's how it was done using divs.
 function createRepeat()
 {
-  const c = currentCircum;
-  const r = currentRepeat;
+  // beads are drawn with diameter 1.0 in SVG coordinates
+  const height = lineHeight * calculateNumRows( currentCircum, currentRepeat );
+  const viewboxArray = [ -0.2, -0.4, currentCircum + 1.4, height + 0.6 ];
 
-  var indented_row = true;
-  var double_row_length = (2*c)+1;
-  var excess = r % double_row_length;
-
-  //figure out the length of the top row and whether it is indented
-  let top_row_length;
-  if (excess > (c+1)) {
-    top_row_length  = excess - (c+1);
-    indented_row = true;
-  }
-  else if (excess == 0) {
-    top_row_length = c;
-    indented_row = true;
-  }
-  else if (excess < (c+1)) {
-    top_row_length = excess;
-    indented_row = false;
-  }
-  else if (excess == (c+1)){
-    top_row_length = c+1;
-    indented_row = false;
-  }
-
-  var j=1;
-  let top_row = true;
-  let tempcount = 1;
-  let rows = 1;
-  let x; // we want last values, to set the svg viewBox
-  let y;
-  while (j<r) {
-    for ( let i=1; i<=(c + 1); i++ ){ //now put in the beads of the row
-      const newElement = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
-      newElement.setAttribute("id", "bead" + j);
-      x = tempcount + (indented_row? 0.5 : 0 );
-      newElement.setAttribute( "cx", x );
-      y = rows * lineHeight;
-      newElement.setAttribute( "cy", y );
-      newElement.setAttribute( "r", 0.5 );
-      newElement.setAttribute( "fill", 'white' );
-      newElement.onclick = function() {
-        newElement .setAttribute( 'fill', colorClass );
-        // currently, we don't know book_index until after indexRepeatBeads(), but there's no reason we couldn't know it here!
-        const beadnumber = newElement .getAttribute('book_index');
-        beadColored( beadnumber );
-      };
-      document.getElementById('VRPsvg').append(newElement);
-      j++;
-      tempcount++;
-      if (top_row && (tempcount > top_row_length)) { //at the end of the top row
-        top_row = false;
-        break; //jump out of for loop since we are at end of row
-      }
-      else if (indented_row && (tempcount == (c+1))) { //at the end of a short row
-        break;//jump out of for loop since we are at the end of a short row
-      }
-    } //end for loop means we finished a row, so reset tempcount, and toggle indented_row
-    tempcount = 1;
-    rows++;
-    if (indented_row) { //if we just finished an indented row, the next row is not indented
-      indented_row = false;
-    }
-    else {
-      indented_row = true;
-    }
-  } //end while
-  const viewboxArray = [ 0, 0, x+1, y+1 ];
   const svgElem = document .getElementById( 'VRPsvg' );
   svgElem .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
-  svgElem .style .width = `${(currentCircum+1) * vrpBeadDiameter}px`;
-}
+  svgElem .style .width = `${(currentCircum+1) * vrpBeadDiameter}px`; // this determines the actual pixel scale of the repeat
 
-// A function to map the repeat indices originally produced top-to-bottom-and-left-to-right to an ordering that is
-// bottom-to-top-and-left-to-right, i.e., into the standard order used for repeat patterns in the Crafting Conundrums book.
-//For each bead in the repeat, we give it an attribute called "book_index" that gives its standard order.
-function indexRepeatBeads()
-{
-  const c = currentCircum;
-  const r = currentRepeat;
-  var indented_row = true;
-  var double_row_length = (2*c)+1;
-  var excess = r % double_row_length;
-  var newIndex = 0;
-  let top_row_length;
+  let indented_row = false;
+  let beads_remaining_in_row = currentCircum + 1;
+  let x = 0.5;
+  let y = height - 0.5;  // drawing beads from the bottom up; SVG coords are zero at the top
+  for (let index = 0; index < currentRepeat; index++) {
+    const bookIndex = index + 1;
 
-  //figure out the length of the top row and whether it is indented
-  if (excess > (c+1)) {
-    top_row_length  = excess - (c+1);
-    indented_row = true;
-  }
-  else if (excess == 0) {
-    top_row_length = c;
-    indented_row = true;
-  }
-  else if (excess < (c+1)) {
-    top_row_length = excess;
-    indented_row = false;
-  }
-  else if (excess == (c+1)){
-    top_row_length = c+1;
-    indented_row = false;
-  }
-  //console.log("In mappingFunction top row length is " + top_row_length);
-  var top_row_start_index = r - top_row_length + 1;
-  var next_row_start_index = top_row_start_index;
-  for ( let i=0; i<top_row_length; i++) {
-    const elem = document.getElementById("bead" + (i+1));
-    const bookIndex = top_row_start_index + i;
-    elem .setAttribute("book_index", Number( bookIndex ));
+    const newElement = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
+    newElement.setAttribute( "cx", x );
+    newElement.setAttribute( "cy", y );
+    newElement.setAttribute( "r", 0.5 );
+    newElement.setAttribute( "fill", 'white' );
 
     // This is the magic that lets paintBeads() work
-    elem .classList .add( 'bookindex-' + bookIndex );
-  }
-  if (top_row_length == r) { //if the top row is the only row, we're done
-    return 0;
-  }
-  //Done with top row and more rows to go, so now proceeed row by row for the rest
-  if (indented_row) { //toggle indented_row
-    next_row_start_index-=(c+1);
-    indented_row = false;
-  }
-  else {
-    next_row_start_index-=c;
-    indented_row = true;
-  }
-  let i = top_row_length + 1;
-  while (i<=r) {
-    for ( let j=1; j<=c+1; j++) {
-      var elem = document.getElementById("bead" + i);
-      newIndex = next_row_start_index + (j-1);
-      elem.setAttribute("book_index", newIndex);
+    newElement .classList .add( 'bookindex-' + bookIndex );
+    newElement.onclick = function() {
+      beadColored( bookIndex );
+    };
+    svgElem .append(newElement);
 
-      // This is the magic that lets paintBeads() work
-      elem .classList .add( 'bookindex-' + newIndex );
-
-      i++;
-      if (indented_row && (j+1 == c+1)) {
-        break; //we were at the end of an indented row, so jump out of the for loop 1 early
+    --beads_remaining_in_row;
+    x += 1.0;
+    if ( beads_remaining_in_row === 0 ) {
+      y -= lineHeight; // drawing beads from the bottom up; SVG coords are zero at the top
+      indented_row = ! indented_row;
+      if ( indented_row ) {
+        beads_remaining_in_row = currentCircum;
+        x = 1.0;
+      } else {
+        beads_remaining_in_row = currentCircum + 1;
+        x = 0.5;
       }
-    }
-    if (indented_row) {
-      next_row_start_index-=(c+1);
-      indented_row = false;
-    }
-    else { //not an indented row
-      next_row_start_index-=c;
-      indented_row = true;
     }
   }
 }
