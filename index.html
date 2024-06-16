@@ -1,4 +1,7 @@
 ---
+title: Crafting Conundrums
+book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'
+description: Design Tool accompanying the book
 ---
 <html>
   <head>
@@ -11,25 +14,25 @@
     <meta property="og:type" content="website"/>
 
 
-    <title>Crafting Conundrums</title>
-    <meta property="og:site_name"  content="Crafting Conundrums"/>
-    <meta property="og:title"      content="Crafting Conundrums"/>
-    <meta property="twitter:title" content="Crafting Conundrums"/>
+    <title>{{ page.title }}</title>
+    <meta property="og:site_name"  content="{{ page.title }}"/>
+    <meta property="og:title"      content="{{ page.title }}"/>
+    <meta property="twitter:title" content="{{ page.title }}"/>
 
     <meta name="author" content="Ellie Baker"/>
     <meta name="author" content="Scott Vorthmann"/>
   
-    <meta name="description"             content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
-    <meta property="og:description"      content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
-    <meta property="twitter:description" content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
+    <meta name="description"             content="{{ page.description }} {{ page.book }}"/>
+    <meta property="og:description"      content="{{ page.description }} {{ page.book }}"/>
+    <meta property="twitter:description" content="{{ page.description }} {{ page.book }}"/>
 
     <meta name="keywords" content="bead,crochet,book,art,mathematics,crafts,design,template,pattern"/>
     
-    <meta property="og:image"  content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
-    <meta name="twitter:image" content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
+    <meta property="og:image"  content="{{ site.github.url }}/K20387_Cover_front4x6.jpg"/>
+    <meta name="twitter:image" content="{{ site.github.url }}/K20387_Cover_front4x6.jpg"/>
     
-    <meta property="og:url" content="https://ejbakerart.github.io/beadcrochetdesign/"/>
-    <link rel="canonical"      href="https://ejbakerart.github.io/beadcrochetdesign/">
+    <meta property="og:url" content="{{ site.github.url }}"/>
+    <link rel="canonical"      href="{{ site.github.url }}">
 
 
     <script src="js/beadCrochetApp.js" type="module"></script>
@@ -43,7 +46,7 @@
 
 <div id="navbar">
   <div id="title">
-    <h2>Crafting Conundrums</h2>
+    <h2>{{ page.title }}</h2>
     <h4>Bead Crochet Design Tool</h4>
   </div>
 
@@ -234,12 +237,12 @@
 
   <div class="backdrop" id="about">
     <div class="dialog">
-      <h1 id="about-title">About Crafting Conundrums</h1>
+      <h1 id="about-title">About {{ page.title }}</h1>
       <div id="about-grid">
         <div id="about-prose">
-          <p>This is a beta version of a Bead Crochet Design Tool. 
+          <p>This is a beta version of a bead crochet design tool. 
             It applies ideas from the design framework described in the book
-            <em>Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist</em> 
+            <em>{{ page.book }}</em> 
             by Ellie Baker and Susan Goldstine.  
             It was created as a supplement to an upcoming new edition of the book. 
             The software was developed by Ellie Baker and Scott Vorthmann.   
