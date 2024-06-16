@@ -64,6 +64,9 @@ description: Design Tool accompanying the book
     <input type="button" id="save-button" value="Save"></input>
   </div>
 
+  <div id="help-button">
+    <input type="button" value="Help"></input>
+  </div>
   <div id="about-button">
     <input type="button" value="About"></input>
   </div>
@@ -255,6 +258,24 @@ description: Design Tool accompanying the book
           <a href="https://www.routledge.com/Crafting-Conundrums-Puzzles-and-Patterns-for-the-Bead-Crochet-Artist/Baker-Goldstine/p/book/9781466588486" target="_blank">
             <img src="K20387_Cover_front4x6.jpg" style="width:285px;height:405px;">
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="backdrop hidden" id="help">
+    <div class="dialog">
+      <h1 id="about-title">How to use {{ page.title }}</h1>
+      <div id="about-grid">
+        <div id="about-prose">
+          <p>
+            Click on any "bead" (circle) in the Vertical Repeat or Bead Plane to set its color,
+            using the currently highlighted swatch under Bead Color.   
+          </p>
+          <p>
+            All actions affecting the Repeat Length, Circumference, and
+            the bead colors in the Vertical Repeat are undoable, so feel free to play!   
+          </p>
         </div>
       </div>
     </div>

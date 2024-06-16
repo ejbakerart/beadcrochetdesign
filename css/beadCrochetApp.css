@@ -196,7 +196,7 @@ body {
 
 #navbar {
   display: grid;
-  grid-template-columns: 1fr 1fr min-content;
+  grid-template-columns: 1fr 1fr min-content min-content;
   background-color: rgb(19, 54, 77);
   padding-inline: 2rem;
 }
@@ -206,8 +206,13 @@ body {
 }
 
 #about-button,
+#help-button,
 #file-operations {
   margin: auto;
+}
+
+#help-button {
+  margin-inline: 1em;
 }
 
 #save-button {

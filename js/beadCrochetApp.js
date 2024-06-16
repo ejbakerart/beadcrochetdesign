@@ -866,6 +866,9 @@ function setup()
   const aboutDialog = document.getElementById('about');
   aboutDialog .addEventListener( 'click', () => aboutDialog .classList .add( 'hidden' ) );
 
+  const helpDialog = document.getElementById('help');
+  helpDialog .addEventListener( 'click', () => helpDialog .classList .add( 'hidden' ) );
+
   const tileDialog = document.getElementById( 'tile-backdrop' );
   tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
 
@@ -924,7 +927,10 @@ function setup()
       case 'About':
         aboutDialog .classList .remove( 'hidden' );
         break;
-      case 'outfile':
+      case 'Help':
+        helpDialog .classList .remove( 'hidden' );
+        break;
+        case 'outfile':
         alert('outputting files not yet implemented');
         break;
       case 'Undo':
