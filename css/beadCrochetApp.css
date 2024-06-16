@@ -181,7 +181,7 @@ input[ type="number" ] {
 .beads-svg {
   position: absolute;
   inset: 0;
-  margin: auto;
+  margin-inline: auto;
 }
 
 /* Style specific components by ID  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
