@@ -20,7 +20,7 @@ let lastRepeat = 0;
 let lastCircum = 0;
 let currentTwist = 0;
 
-const colorpicker = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"];
+const colorpicker = ["white","white","white","white","white","white","white","white"];
 let nextColor = -1; //the index into colorpicker arrays -- gets initialized to 0 first time it is used
 const maxColors = colorpicker.length;
 
