@@ -37,13 +37,7 @@ const bpHeight = 56;//62  NOTE: THIS MUST BE AN EVEN NUMBER OR POSSIBLY BUGS???
 const minCircum = 3; //the minimum circumference choice allowed
 const maxCircum = 20; //the maximum circumference choice allowed
 const minRepeat = 2; //the minimum length of the repeat allowed
-const maxRepeat = 500; //the maximum length of the repeat allowed.
-const arrayheight = bpHeight + 1; //The 2D array for the beadplane info
-const arraywidth = bpWidth + 1;
-const emptystring = "";
-const bpValues = Array.from(Array(arrayheight), () => new Array(arraywidth)); //a 2D array that maps beads in the beadplane
-//to their associated beads in the repeat. It is indexed by the creation row and col of the beadplane and gives the
-//repeat bead number (as the book_index or stringing position in the repeat)
+const maxRepeat = 1000; //the maximum length of the repeat allowed.
 
 const vrpBeadDiameter = 20;
 
@@ -93,54 +87,59 @@ function saveToHistory()
   }
 }
 
-//The function that gets called when the user changes the repeat or circumference parameters, or the
-//twist parameter is changed.
-function update()
+function updateRepeat()
+{
+  const repeat = document.getElementById('fREPEAT');
+  if ((repeat.value > maxRepeat) || (repeat.value < minRepeat)) {
+    alert('Repeat length must be between ' + minRepeat + ' and ' + maxRepeat);
+    repeat.value = currentRepeat;
+    return 0;
+  }
+  lastRepeat = currentRepeat;
+  currentRepeat = Number(repeat.value);
+  if (currentRepeat > lastRepeat) {
+    // got bigger
+    refreshEverything( [ currentRepeat, ...repeatColors, "white" ], true );
+  }
+  else if (currentRepeat < lastRepeat) {
+    // got smaller
+    refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
+  }
+}
+
+function updateCircumference()
 {
   const circum = document.getElementById('fCircumference');
-  const repeat = document.getElementById('fREPEAT');
-  const twist = document.getElementById('fTwist');
 
   if ((circum.value > maxCircum) || (circum.value < minCircum)) {
     alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
     circum.value = currentCircum;
     return 0;
   }
-  else if ((repeat.value > maxRepeat) || (repeat.value < minRepeat)) {
-      alert('Repeat length must be between ' + minRepeat + ' and ' + maxRepeat);
-      repeat.value = currentRepeat;
-      return 0;
-  }
-  lastRepeat = currentRepeat;
   lastCircum = currentCircum;
   currentCircum = Number(circum.value);
-  currentRepeat = Number(repeat.value);
   //alert(lastRepeat + " " + lastCircum + " " + currentRepeat + " " + currentCircum);
   // if something changed redraw the repeat and make any other needed changes to the display
   //Note that we essentially allow only one change at a time -- you can't change both repeat
   //circumference at the same time, and circumference changes take precedence over repeat changes,
   //since changes the circumference also changes the repeat, but not vice versa.
-  if ((currentCircum != lastCircum) || (currentRepeat != lastRepeat)) {
-    if (currentCircum > lastCircum) {
-      if (repeatLocked)
-        circumferenceChangedRepeatLocked();
-      else
-        circumferenceGotBigger();
-    }
-    else if (currentCircum < lastCircum) {
-      if (repeatLocked)
-        circumferenceChangedRepeatLocked();
-      else
-        circumferenceGotSmaller();
-    }
-    else if (currentRepeat > lastRepeat) {
-      repeatGotBigger();
-    }
-    else if (currentRepeat < lastRepeat) {
-      repeatGotSmaller();
-    }
-
+  if (currentCircum > lastCircum) {
+    if (repeatLocked)
+      circumferenceChangedRepeatLocked();
+    else
+      circumferenceGotBigger();
   }
+  else if (currentCircum < lastCircum) {
+    if (repeatLocked)
+      circumferenceChangedRepeatLocked();
+    else
+      circumferenceGotSmaller();
+  }
+}
+
+function updateTwist()
+{
+  const twist = document.getElementById('fTwist');
   if (twist != currentTwist) {//twist value changed
     //if ((twist > 30) || (twist < -30)) {
     //alert('Twist must be between -30 and 30 degrees.');
@@ -154,16 +153,6 @@ function update()
     currentTwist = twist.value;
     doTwist(currentTwist);
   }
-}
-
-function repeatGotBigger()
-{
-  refreshEverything( [ currentRepeat, ...repeatColors, "white" ], true );
-}
-
-function repeatGotSmaller()
-{
-  refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
 }
 
 //Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
@@ -273,14 +262,15 @@ function circumferenceGotSmaller()
 
 function commonRefresh()
 {
-  // TODO: combine and simplify these two, just loop over the repeat in normal order,
-  //  attach the bookIndex data, and compute positions in the VRP from that.
   createRepeat();
 
   rebuildColoredNumbers();
 
   createTile();
-  updateBeadPlane();
+
+  recomputeBookIndices( document .getElementById( "BPsvg" ) );
+  recomputeBookIndices( document .getElementById( "ROPEsvg" ) );
+
   reshapeRope();
 }
 
@@ -327,19 +317,8 @@ function refreshEverything( colorArray, resetRedo )
 
   commonRefresh();
 
-  //paint the beadplane with the new array
-  for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-    const circle = document .getElementById( "svg_beadPlane" + i );
-    const row = Number( circle.getAttribute("row") );
-    const col = Number( circle.getAttribute("col") );
-    const index = bpValues[row][col];
-    circle .setAttribute( 'fill', colorArray[index] );
-  }
-
-  //and paint all beads with the new array
+  // paint all beads with the new repeatColors
   repeatColors .forEach( ( color, i ) => paintBeads( i+1, color ) );
-
-  paintRopeBeadplane();
 }
 
 //calculate and return the number of rows in a Repeat
@@ -396,46 +375,31 @@ function beadColored( bookIndex )
   saveToHistory();
 
   paintBeads( bookIndex, colorClass );
-  for (let i = 1; i <= ((bpWidth) * (bpHeight)); i++) {
-    const circle = document.getElementById("svg_beadPlane" + i);
-    let row = Number(circle.getAttribute("row"));
-    let col = Number(circle.getAttribute("col"));
-    if (bookIndex == bpValues[row][col]) { //if this bead in the beadplane corresponds to bead number x in the repeat, paint it
-      circle.setAttribute('fill', colorClass);
-    }
-  }
-  paintRopeBeadplane();
   rebuildColoredNumbers();
   remaining_redos = 0;
 }
 
-//use this function for creating the large bead plane set of beads.  The "where" input parameter specifies
-//the ID of the div within which this bead plane should be placed. The "tag" parameter specifies an
-//additional ID for the beadplane, since we are creating multiple beadplanes, a main one and one for the rope.
-//THe main beadplane has an empty tag, and the rope beadplane tag is "rope".
-function createBeadPlane(where, tag)
+function createBeadPlane( parent, clickable, height, width )
 {
-  var beadorder = 1; //each bead in the plane gets a unique id of beadPlane[i] -- I need to figure this out...
-  for ( let i=bpHeight; i>0; i--){
-    for( let j=1; j<=bpWidth; j++){
+  for ( let i = height; i > 0; i-- ) {
+    for( let j = 1; j <= width; j++ ){
       const newCircle = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
-      newCircle.setAttribute( "id", "svg_beadPlane" + tag + beadorder);
-      newCircle.setAttribute("row", i);
-      newCircle.setAttribute("col", j);
-      beadorder++;
       newCircle.setAttribute( "r", 0.5 );
       newCircle.setAttribute( "fill", 'white' );
       newCircle.setAttribute( "cx", j + (i%2 ? 0.5 : 1 ) );
-      newCircle.setAttribute( "cy", 1 + lineHeight * ( bpHeight - i ) );
+      newCircle.setAttribute( "cy", 1 + lineHeight * ( height - i ) );
 
-      // TODO: get rid of bpValues, and create all bead displays the same way
-      if ( !tag ) { // only the beadplane is clickable
-        //  bpValues is not available during create, but is initialized in updateBeadplane
-        newCircle.onclick = () => beadColored( bpValues[i][j] );
+      // We need row and col later, when assigning the beadOrder class
+      newCircle.setAttribute( "row", i );
+      newCircle.setAttribute( "col", j );
+
+      if ( clickable ) { // only the beadplane is clickable
+        // row and column have no relevance here... just beadorder
+        newCircle.onclick = () => beadColored( computeBookIndex( i, j ) );
       }
-      document .getElementById( where+"svg" ) .appendChild(newCircle);
-    } //end inner for loop
-  } //end outer for loop
+      parent .appendChild(newCircle);
+    }
+  }
 }
 
 const lcm = ( num1, num2 ) =>
@@ -467,82 +431,35 @@ function createTile()
   rect .setAttribute( 'width', currentRepeat*beadDiameter );
   rect .setAttribute( 'height', tileHeight*lineHeight*beadDiameter );
   const group = document .getElementById( "tile-group" );
-
-  for ( let i=tileHeight+1; i>0; i-- ) {
-    // TODO: replace computation of x and bead (copied from updateBeadPlane) with a simple function
-    let x = ( ( (currentCircum*(i-1)) + (Math.floor(((i)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
-    for( let j=1; j<=currentRepeat+1; j++ ) {
-      const newCircle = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
-      let bead = 0;
-      if ((x%currentRepeat) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
-        bead = currentRepeat;
-        x=1;
-      }
-      else {//otherwise not finished with repeat, so set repeat offset to (x mod r) and just increment x for next iteration
-        bead = x % currentRepeat; // setrepeat offset for this bead
-        x++;
-      }
-
-      // This is the magic that lets paintBeads() work
-      newCircle .classList .add( 'bookindex-'+bead );
-
-      newCircle.setAttribute( "r", beadDiameter/2 );
-      newCircle.setAttribute( "fill", 'white' );
-      newCircle.setAttribute( "cx", beadDiameter * (j - 1 + (i%2 ? 0 : 0.5 ) ) );
-      newCircle.setAttribute( "cy", lineHeight * beadDiameter * ( tileHeight - i + 1 ) );
-      group .appendChild( newCircle );
-    }
-  }
+  createBeadPlane( group, false, tileHeight+1, currentRepeat+1 );
+  recomputeBookIndices( group );
 }
 
-//Update the bead plane info in response to user's change in the repeat length or circumference c.  We need to update
-//a global 2D array representing each bead in each row of the bead plane to state the bead number of the repeat
-//to which it corresponds.  The bead numbers of the repeat are assumed to be ordered as the book specifies,
-//namely bottom-to-top-left-to-right.
-//Go through the bead plane beads row by row, using row numbers starting at the bottom as row 1.
-//Once you find the value for the first bead in the row, just increase by one for the rest of the beads in the row
-//until you get to the repeat length, then start at one again, cycling until you get to the end of the row.
-//The first bead's corresponding number in the repeat is given by the following formula:
-// ( ( (c*(row)) + ((row+1)/2+1) ) % repeatlength).
-//THis effectively places the repeat in the lower left of the beadplane and then tiles the repeats from there.
-//had to be a little careful because array indices started at 0 not 1, which impacted my formula above
-function updateBeadPlane()
+function computeBookIndex( row, col )
 {
-  const c = currentCircum;
-  const r = currentRepeat;
-
-  var x = 0;
-  for ( let row=1; row<=bpHeight; row++){
-    x = ( ( (c*(row-1)) + (Math.floor(((row)/2+1) ) ) ) ) ; //compute the offset in the repeat for the first bead in the row
-    for( let bead=1; bead<=bpWidth; bead++){
-      if ((x%r) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
-        bpValues[row][bead] = r;
-        //console.log(row, bead, r);
-        x=1;
-      }
-      else {//otherwise not finished with repeat, so set repeat offset to (x mod r) and just increment x for next iteration
-        bpValues[row][bead] = x % r; // setrepeat offset for this bead
-        //console.log(row, bead, x%r);
-        x++;
-      }
+  let x = currentCircum*(row-1) + Math.floor( ((row)/2+1) ) + spin_offset; //compute the offset in the repeat for the first bead in the row
+  let bead = 0;
+  for( let j=1; j<=col; j++ ) {
+    if ((x%currentRepeat) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
+      bead = currentRepeat;
+      x=1;
+    }
+    else {//otherwise not finished with repeat, so set repeat offset to (x mod r) and just increment x for next iteration
+      bead = x % currentRepeat; // setrepeat offset for this bead
+      x++;
     }
   }
+  return bead;
 }
 
-//Update the painting on the beads in the beadplane that represents the simulated rope.
-function paintRopeBeadplane()
+function recomputeBookIndices( parent )
 {
-  for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-    var rope_elem = document.getElementById("svg_beadPlanerope" + i);
-    let row = Number( rope_elem.getAttribute("row") );
-    let col = Number( rope_elem.getAttribute("col") );
-    var repeat_index = bpValues[row][col] - 1; //find out what repeat bead this beadplane bead is associated with
-    repeat_index = repeat_index + spin_offset; //add the spin offset to it
-    if (repeat_index > currentRepeat) {
-      repeat_index = repeat_index % currentRepeat;
-    }
-    let color = repeatColors[repeat_index];
-    rope_elem .setAttribute( 'fill', color );
+  for ( const circle of parent .children ) {
+    const row = Number( circle .getAttribute( "row" ) );
+    const col = Number( circle .getAttribute( "col" ) );
+    const index = computeBookIndex( row, col );
+    circle .removeAttribute( 'class' );
+    circle .classList .add( 'bookindex-' + index );
   }
 }
 
@@ -559,21 +476,6 @@ const paintAllBeads = ( color ) =>
   for (let index = 1; index <= currentRepeat; index++) {
     paintBeads( index, color );
   }
-
-  // TODO: GET RID OF CODE BELOW.  If all bead circles are properly class tagged, it will be covered in paintBeads()
-
-  //Paint all the colors in the beadplane.  The "tag" parameter specifies and additional tag to identify which
-  //beadplane were are working on.  If it is any empty string, it is the main beadplane.  If it is "rope", it's
-  //the rope bead plane.
-  function clearBeadplane(incolor, tag)
-  {
-    for ( let i=1; i<=((bpWidth) * (bpHeight)); i++) {
-      const circle = document .getElementById( "svg_beadPlane" + tag + i );
-      circle .setAttribute( 'fill', incolor );
-    }
-  }
-  clearBeadplane( colorClass, emptystring ); //then clear the beads in the main beadplane
-  clearBeadplane( colorClass, "rope" );//and clear the simulated rope beadplane too
   rebuildColoredNumbers();
 }
 
@@ -778,6 +680,12 @@ function lockbuttonToggle() {
   }
 }
 
+function handleRopeSpin()
+{
+  spin_offset = (spin_offset + 1) % currentRepeat; //advance the offset in the repeat by one to simulate spinning
+  // paintRopeBeadplane();
+}
+
 //CURRENTLY USING THIS FUNCTION TO GET THE SAVE FILE WINDOW TO COME UP, BUT IT ONLY WORKS ON CHROME AND A FEW OTHER BROWSERS
 async function getNewFileHandle() {
   const options = {
@@ -794,16 +702,18 @@ async function getNewFileHandle() {
   return handle;
 }
 
-//CURRENTLY USING THIS FUNCTION TO WRITE FILES!!!
-// createWriteable was causing an error, but I fixed it by making it async and also the click funchtion for the save button async
-async function writeFile(fileHandle, contents) {
+async function handleSave()
+{
+  const contents = JSON.stringify(repeatHistory[historyIndex]);
+  const fileHandle = await getNewFileHandle(); //THESE NEXT TWO LINES WORK GREAT BUT NEED HTTPS SECURITY and ONLY on Chrome and a few other browsers
   // Create a FileSystemWritableFileStream to write to.
   const writable = await fileHandle.createWritable();
   // Write the contents of the file to the stream.
   await writable.write(contents);
   // Close the file and write the contents to disk.
-  await writable.close();
+  await writable.close(); 
 }
+
 
 async function exportFile( contents )
 {
@@ -823,22 +733,6 @@ async function exportFile( contents )
   await writable.write(contents);
   // Close the file and write the contents to disk.
   await writable.close();
-}
-
-//NOT USING. DOESN'T WORK BECAUSE REQUIRE NEEDS SOME KIND OF PACKAGE
-function writeRepeatToFile(repeat_array, path, filename) {
-  const fs = require('fs');
-  const content = 'Some content!';
-
-  fs.writeFile('/Users/ellenbaker/junk/test.txt', content, err => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    else {
-      console.log("file written");
-    }
-  })
 }
 
 const setBorderColor = color =>
@@ -879,8 +773,8 @@ function setup()
   document .getElementById( "set-border-color" ) .addEventListener( 'click', () => setBorderColor( colorClass ) );
   document .getElementById( "set-bkgd-color" ) .addEventListener( 'click', () => setBackgroundColor( colorClass ) );
 
-  createBeadPlane('BP', emptystring);
-  createBeadPlane("ROPE", "rope");
+  createBeadPlane( document .getElementById( "BPsvg" ),   true,  bpHeight, bpWidth );
+  createBeadPlane( document .getElementById( "ROPEsvg" ), false, bpHeight, bpWidth );
 
   commonRefresh();
 
@@ -916,62 +810,26 @@ function setup()
 
   document .getElementById( 'tile-button' ) .addEventListener( 'click', () => tileDialog .classList .remove( 'hidden' ) );
 
-  // watch out for the async in here that Mike made me put in to get the getNewFileHandle code to work
-  document.querySelectorAll("input") .forEach( el => el .addEventListener( "click", async (e) => {
-    // something was mouse clicked
-    var clickType = el.getAttribute('value');
-    switch (clickType) {
-      case 'Color All':
-        handleColorAll();
-        break;
-      case 'About':
-        aboutDialog .classList .remove( 'hidden' );
-        break;
-      case 'Help':
-        helpDialog .classList .remove( 'hidden' );
-        break;
-        case 'outfile':
-        alert('outputting files not yet implemented');
-        break;
-      case 'Undo':
-        undo();
-        break;
-      case 'Redo':
-        redo();
-        break;
-      case 'Add Color':
-        addToPalette(colorPickerColor);
-        break;
-      case 'Open':
-        loadSelectedSource();
-        break;
-      case 'Save':
-        var contents = JSON.stringify(repeatHistory[historyIndex]);
-        var filehandle = await getNewFileHandle(); //THESE NEXT TWO LINES WORK GREAT BUT NEED HTTPS SECURITY and ONLY on Chrome and a few other browsers
-        writeFile(filehandle, contents);
-        //FileSave(contents, "ChangeThisFilenameAndSave.txt");//THIS ALTERNATIVE WORKS WITHOUT HTTPS or CHROME BUT USES THE DOWNLOAD APPROACH AND USER HAS TO MOVE THE FILE AND CHANGE THE NAME
-        //writeRepeatToFile(repeatHistory[historyIndex], "/users/ellenbaker/junk/", "test.txt"); //DOESN"T WORK BECAUSE OF REQUIRE
-        break;
-      case 'Lock': //lock unlock toggle for locking the repeat number when circumference is changed
-        lockbuttonToggle();
-        break;
-      case 'Unlock': //lock unlock toggle for locking the repeat number when circumference is changed
-        lockbuttonToggle();
-        break;
-      case 'Spin':
-        spin_offset++; //advance the offset in the repeat by one to simulate spinning
-        if (spin_offset == (currentRepeat)) {
-          spin_offset = 0;
-        }
-        paintRopeBeadplane();
-        break;
-      case 'Set':
-        return; // style buttons handled by dedicated listeners
-    }
-    //if it wasn't any of above buttons, must have been a change to repeat or circum,
-    //or a painted bead, so call the update function
-    update();
-  }) );
+  document .getElementById( 'undo' ) .addEventListener( 'click', undo );
+  document .getElementById( 'redo' ) .addEventListener( 'click', redo );
+
+  document .getElementById( 'about-button' ) .addEventListener( 'click', () => aboutDialog .classList .remove( 'hidden' ) );
+  document .getElementById( 'help-button'  ) .addEventListener( 'click', () => helpDialog  .classList .remove( 'hidden' ) );
+
+  document .getElementById( 'add-color' ) .addEventListener( 'click', () => addToPalette(colorPickerColor) );
+  document .getElementById( 'color-all' ) .addEventListener( 'click', handleColorAll );
+
+  document .getElementById( 'open-button' ) .addEventListener( 'click', loadSelectedSource );
+  document .getElementById( 'save-button' ) .addEventListener( 'click', handleSave );
+
+  document .getElementById( 'lockButton' ) .addEventListener( 'click', lockbuttonToggle );
+
+  document .getElementById( 'spin-button' ) .addEventListener( 'click', handleRopeSpin );
+
+  // change listeners for number fields, not clicks
+  document .getElementById( 'fTwist' )         .addEventListener( 'change', updateTwist );
+  document .getElementById( 'fREPEAT' )        .addEventListener( 'change', updateRepeat );
+  document .getElementById( 'fCircumference' ) .addEventListener( 'change', updateCircumference );
 }
 
 setup();
