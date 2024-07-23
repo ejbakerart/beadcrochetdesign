@@ -124,7 +124,9 @@ function updateRepeat()
   currentRepeat = Number(repeat.value);
   if (currentRepeat > lastRepeat) {
     // got bigger
-    refreshEverything( [ currentRepeat, ...repeatColors, "white" ], true );
+    const length = currentRepeat - lastRepeat;
+    const insert = Array.from( { length }, (_, i) => 'white' ) ;
+    refreshEverything( [ currentRepeat, ...repeatColors, ...insert ], true );
   }
   else if (currentRepeat < lastRepeat) {
     // got smaller
