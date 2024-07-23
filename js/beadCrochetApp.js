@@ -87,6 +87,31 @@ function saveToHistory()
   }
 }
 
+// This function captures the shape of the repeat, and makes callbacks for each bead
+//  and at the end of each row, so we don't have to duplicate this logic, or worse,
+//  implement it differently to find row ends.
+function traverseRepeat( visitBead, endRow )
+{
+  let indented_row = false;
+  let beads_remaining_in_row = currentCircum + 1;
+  // NOTE! Indices here are zero-based!
+  for (let index = 0; index < currentRepeat; index++) {
+    visitBead( index );
+    --beads_remaining_in_row;
+    if ( beads_remaining_in_row === 0 ) {
+      // counting beads from the bottom up
+      indented_row = ! indented_row;
+      endRow( index, indented_row ); // index is last bead of the row being completed
+      if ( indented_row ) {
+        beads_remaining_in_row = currentCircum;
+      } else {
+        beads_remaining_in_row = currentCircum + 1;
+      }
+    }
+  }
+}
+
+// This is called when the repeat value is changed by the user.
 function updateRepeat()
 {
   const repeat = document.getElementById('fREPEAT');
@@ -107,8 +132,22 @@ function updateRepeat()
   }
 }
 
+function getRepeatRowEnds()
+{
+  const rowEnds = [];
+  traverseRepeat( 
+    () => {}, // no-op per bead
+    ( lastIndex ) => { // finishing a row
+      rowEnds .push( lastIndex );
+    }
+  )
+  return rowEnds;
+}
+
 function updateCircumference()
 {
+  console.log( 'updateCircumference %%%%%%%%%%%%%%%%%%%%%%%%%%%%%' );
+
   const circum = document.getElementById('fCircumference');
 
   if ((circum.value > maxCircum) || (circum.value < minCircum)) {
@@ -116,24 +155,53 @@ function updateCircumference()
     circum.value = currentCircum;
     return 0;
   }
+  lastRepeat = currentRepeat;
   lastCircum = currentCircum;
-  currentCircum = Number(circum.value);
-  //alert(lastRepeat + " " + lastCircum + " " + currentRepeat + " " + currentCircum);
-  // if something changed redraw the repeat and make any other needed changes to the display
+  const nextCircum = Number(circum.value);
+  if ( lastCircum == nextCircum )
+    return;
+
   //Note that we essentially allow only one change at a time -- you can't change both repeat
   //circumference at the same time, and circumference changes take precedence over repeat changes,
   //since changes the circumference also changes the repeat, but not vice versa.
-  if (currentCircum > lastCircum) {
-    if (repeatLocked)
-      circumferenceChangedRepeatLocked();
-    else
-      circumferenceGotBigger();
+  if (repeatLocked) {
+    currentCircum = nextCircum;
+    const tempRepeat = [ ...repeatColors.slice( 0, currentRepeat ) ];
+    currentRepeat = tempRepeat.length;
+    refreshEverything( [ currentRepeat, ...tempRepeat ], true );  
   }
-  else if (currentCircum < lastCircum) {
-    if (repeatLocked)
-      circumferenceChangedRepeatLocked();
-    else
-      circumferenceGotSmaller();
+  else {
+    const delta = nextCircum - lastCircum;
+    const tempRepeat = [ ...repeatColors ];
+
+    if ( delta > 0 ) {
+      // If the circumference changes, I've made a design choice to also change the length of the repeat,
+      // so as not to change the height just because we are changing width.
+      let rowEnds = getRepeatRowEnds();
+      const insert = Array.from( { length: delta }, (_, i) => 'white' ) ;
+      // go backwards so we don't need to keep recomputing indices
+      for ( const rowEnd of rowEnds .toReversed() ) {
+        tempRepeat .splice( rowEnd+1, 0, ...insert ); // insert some white beads at each row end
+      }
+    } else if ( delta < 0 ) {
+      // Remove one column at a time, and recompute rowEnds, so that we handle
+      //   the top short row correctly... it becomes a row end appropriately.
+      // This is a bit inefficient, but MUCH easier to reason about.
+      for ( let index = 0; index < -delta; index++ ) {
+        let rowEnds = getRepeatRowEnds();
+        // go backwards so we don't need to keep recomputing indices
+        for ( const rowEnd of rowEnds .toReversed() ) {
+          tempRepeat .splice( rowEnd, 1 ); // remove the bead at the row end
+        }
+        // maintain these so that getRepeatRowEnds works; they'll be overwritten after this loop equivalently
+        currentRepeat = tempRepeat.length;
+        --currentCircum;
+      }
+    }
+    currentCircum = nextCircum;
+    currentRepeat = tempRepeat.length;
+    document .getElementById( 'fREPEAT' ) .value = currentRepeat;
+    refreshEverything( [ currentRepeat, ...tempRepeat ], true);
   }
 }
 
@@ -153,111 +221,6 @@ function updateTwist()
     currentTwist = twist.value;
     doTwist(currentTwist);
   }
-}
-
-//Change the circumference when the repeat length has been locked (much easier than when the repeat is not locked)
-function circumferenceChangedRepeatLocked()
-{
-  lastRepeat = currentRepeat;
-  refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
-}
-
-//If the circumference increases, I've made a design choice to also increase the length of the repeat,
-// so as not to reduce height just because we are increasing width.  This decision made this a particularly
-//nasty function since we are effectively changing two things at once...
-function circumferenceGotBigger()
-{
-  const delta = currentCircum - lastCircum;
-  let revised_r = 0;
-  const olddouble_row_length = (lastCircum*2)+1;
-  // since circumference has increased, we're going to need to add add more to the repeat length to
-  //account for the bigger circumference, so calculate a new revised repeat length as well.
-  //To the current repeat, we add two extra beads for every double row
-  revised_r = currentRepeat + (  Math.floor((currentRepeat/((2*lastCircum)+1))) * (2 * delta));
-  if ((currentRepeat % ((2*lastCircum)+1)) >= (lastCircum+1)) {//if there's an additional full single row at the top
-    revised_r+=delta;//then add delta more beads, so that every full row gets delta extra beads.
-  }
-  if (revised_r > maxRepeat) {
-    revised_r = maxRepeat;  //limit the increase in the repeat to the maximum allowed.
-  }
-  //alert("new repeat length is " + revised_r + " delta is " + delta);
-  lastRepeat = currentRepeat;
-  currentRepeat = revised_r;
-  document .getElementById("fREPEAT") .value = revised_r;
-
-  let new_colours = new Array(revised_r+1);//we need an extra space because we store the circum at 0 and the rest at 1 to n
-
-  var indented_row = false;
-  for ( let i = 1, old_i=1; (i <= (revised_r)) && (old_i <= lastRepeat+1); i++, old_i++ ) {
-    //console.log("i, old_i : " + i + " " + old_i);
-    //if we're at the end of a double row or a single row, paint in the extra white beads
-    if ( (((old_i % olddouble_row_length) == 1) && indented_row) || //if start of a
-          ( ((old_i % olddouble_row_length) == (lastCircum+2)) && !indented_row) ) {
-      old_i--;
-      //console.log("made it through first conditional")
-      for ( let j = 0; ((j < delta) && ((i+j) <= (revised_r))); j++) {
-        //console.log("i, j, delta, revised_r, last repeat are: " + i + " " + j + " " + delta + " " + revised_r + " " + lastRepeat);
-        new_colours[i+j] = "white";
-        //console.log("A new bead is inserted at" + " index " + (i+j));
-      }
-      if (indented_row == true) {//toggle indented_row
-        indented_row = false;
-      } else {
-        indented_row = true;
-      }
-      i+=(delta-1);
-    }
-    else {
-      new_colours[i] = repeatColors[old_i-1];
-    }
-  }
-
-  new_colours[ 0 ] = currentRepeat;
-  refreshEverything( new_colours, true);
-}
-
-function circumferenceGotSmaller()
-{
-  const delta = lastCircum - currentCircum;
-  // since circumference has decreased, we're going to need to reduce the repeat length to
-  //account for the smaller circumference, so calculate a new revised repeat length as well.
-  //To the current repeat, we remove two extra beads for every double row
-  let revised_r = currentRepeat - (  Math.floor((currentRepeat/((2*lastCircum)+1))) * (2 * delta));
-  if ((currentRepeat % ((2*lastCircum)+1)) >= (lastCircum+1)) {//if there's an additional full single row at the top
-    revised_r-=delta;//then remove delta more beads, so that every full row gets delta fewer beads.
-  }
-  //alert("new repeat length is " + revised_r + " delta is " + delta);
-  lastRepeat = currentRepeat;
-  currentRepeat = revised_r;
-  document .getElementById( "fREPEAT" ) .value = revised_r;//set the repeat on screen to its new value
-  const num_rows = calculateNumRows(lastCircum, lastRepeat);
-  //alert("num_rows is " + num_rows);
-  let new_colours = new Array(revised_r+1);//need extra slot because we store circum in slot 0 and use 1-n for repeat
-  //copy the bead colors, lopping off the ones on the right of the old Repeat to reduce the circumference
-  //I really hate this code.  There's gotta be a better way to do this!
-  let index = 1;
-  let indented_row = false;
-  for ( let i=0; i<num_rows; i++) {
-    for ( let j=1; j<=(lastCircum-delta); j++)  {
-      if(index > (revised_r+1)) {break;}
-      new_colours[index] = repeatColors[index+(delta*i)-1];
-      //console.log(index + " coming from " + (index+(delta*i)));
-      index++
-    }
-    if (!indented_row && (index<=revised_r+1)) {
-      new_colours[index] = repeatColors[index+(delta*i)-1];
-      //console.log(index + " coming from " + (index+(delta*i)));
-      index++
-    }
-    if (indented_row == true) { //toggle indented_row
-      indented_row = false;
-    }
-    else {
-      indented_row = true;
-    }
-  }
-  new_colours[ 0 ] = currentRepeat;
-  refreshEverything( new_colours, true);
 }
 
 function commonRefresh()
@@ -425,11 +388,13 @@ function createTile()
 
   const svg = document .getElementById( 'tile-svg' );
   svg .style .width = `${(currentRepeat+1) * tileBeadDiameter}px`;
-  const viewboxArray = [ 0, 0, currentRepeat*beadDiameter, tileHeight*lineHeight*beadDiameter ];
+  const width = (currentRepeat+3)*beadDiameter;
+  const height = (tileHeight*lineHeight+2)*beadDiameter;
+  const viewboxArray = [ 1.5, 1.0, width, height ];
   svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   const rect = document .getElementById( 'clip-rect' );
-  rect .setAttribute( 'width', currentRepeat*beadDiameter );
-  rect .setAttribute( 'height', tileHeight*lineHeight*beadDiameter );
+  rect .setAttribute( 'width', width );
+  rect .setAttribute( 'height', height );
   const group = document .getElementById( "tile-group" );
   createBeadPlane( group, false, tileHeight+1, currentRepeat+1 );
   recomputeBookIndices( group );
@@ -489,40 +454,33 @@ function createRepeat()
   svgElem .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   svgElem .style .width = `${(currentCircum+1) * vrpBeadDiameter}px`; // this determines the actual pixel scale of the repeat
 
-  let indented_row = false;
-  let beads_remaining_in_row = currentCircum + 1;
   let x = 0.5;
   let y = height - 0.5;  // drawing beads from the bottom up; SVG coords are zero at the top
-  for (let index = 0; index < currentRepeat; index++) {
-    const bookIndex = index + 1;
 
-    const newElement = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
-    newElement.setAttribute( "cx", x );
-    newElement.setAttribute( "cy", y );
-    newElement.setAttribute( "r", 0.5 );
-    newElement.setAttribute( "fill", 'white' );
+  traverseRepeat( 
+    index => { // for each bead
+      const bookIndex = index + 1;
 
-    // This is the magic that lets paintBeads() work
-    newElement .classList .add( 'bookindex-' + bookIndex );
-    newElement.onclick = function() {
-      beadColored( bookIndex );
-    };
-    svgElem .append(newElement);
-
-    --beads_remaining_in_row;
-    x += 1.0;
-    if ( beads_remaining_in_row === 0 ) {
+      const newElement = document.createElementNS( "http://www.w3.org/2000/svg", "circle" );
+      newElement.setAttribute( "cx", x );
+      newElement.setAttribute( "cy", y );
+      newElement.setAttribute( "r", 0.5 );
+      newElement.setAttribute( "fill", 'white' );
+  
+      // This is the magic that lets paintBeads() work
+      newElement .classList .add( 'bookindex-' + bookIndex );
+      newElement.onclick = function() {
+        beadColored( bookIndex );
+      };
+      svgElem .append(newElement);
+  
+      x += 1.0;  
+    },
+    ( lastIndex, nextIndented ) => { // start a new row
       y -= lineHeight; // drawing beads from the bottom up; SVG coords are zero at the top
-      indented_row = ! indented_row;
-      if ( indented_row ) {
-        beads_remaining_in_row = currentCircum;
-        x = 1.0;
-      } else {
-        beads_remaining_in_row = currentCircum + 1;
-        x = 0.5;
-      }
+      x = nextIndented? 1.0 : 0.5;
     }
-  }
+  );
 }
 
 //called when the user pushes the ADD button (which means add the color picker color to the palette)
@@ -683,7 +641,8 @@ function lockbuttonToggle() {
 function handleRopeSpin()
 {
   spin_offset = (spin_offset + 1) % currentRepeat; //advance the offset in the repeat by one to simulate spinning
-  // paintRopeBeadplane();
+  recomputeBookIndices( document .getElementById( "ROPEsvg" ) );
+  repeatColors .forEach( ( color, i ) => paintBeads( i+1, color ) );
 }
 
 //CURRENTLY USING THIS FUNCTION TO GET THE SAVE FILE WINDOW TO COME UP, BUT IT ONLY WORKS ON CHROME AND A FEW OTHER BROWSERS
@@ -785,11 +744,11 @@ function setup()
     colorPickerColor = colorPickerElem .value;
   } );
 
-  document.addEventListener("keyup", function(event) {
-    if (event.keyCode === 13) { //Enter key is pressed
-      update();
-    }
-  });
+  // document.addEventListener("keyup", function(event) {
+  //   if (event.keyCode === 13) { //Enter key is pressed
+  //     update();
+  //   }
+  // });
 
   document .getElementById( 'export-vrp' ) .addEventListener( 'click', () => {
     exportFile( document .getElementById( 'VRPsvg' ) .outerHTML );
