@@ -89,7 +89,7 @@ description: Design Tool accompanying the book
         <div class="beads-grid-item">
           <div class="centered-scroller">
             <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
-            <svg id="VRPsvg" class="beads-svg" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg" ></svg>
+            <svg id="VRPsvg" class="beads-svg beads-bkgd" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg" ></svg>
           </div>
         </div>
         <div id="colored-numbers"></div>
@@ -175,7 +175,7 @@ description: Design Tool accompanying the book
     <div id="bp-grid">
       <div class="beads-grid-item">
         <div class="centered-scroller">
-          <svg id="BPsvg" class="beads-svg" viewBox="0.8 0 39 49.5" xmlns="http://www.w3.org/2000/svg" ></svg>
+          <svg id="BPsvg" class="beads-svg beads-bkgd" viewBox="0.8 0 39 49.5" xmlns="http://www.w3.org/2000/svg" ></svg>
         </div>
       </div>
       <div id="bp-buttons" class="right-justify">
@@ -198,7 +198,7 @@ description: Design Tool accompanying the book
       </div>
       <div class="beads-grid-item">
         <div id="ROPE" class="centered-scroller">
-          <svg id="rope-svg" class="beads-svg" viewBox="17 3 7 42" xmlns="http://www.w3.org/2000/svg" >
+          <svg id="rope-svg" class="beads-svg beads-bkgd" viewBox="17 3 7 42" xmlns="http://www.w3.org/2000/svg" >
             <g id="ROPEsvg">
             </g>
           </svg>
@@ -216,17 +216,20 @@ description: Design Tool accompanying the book
         <div id="tile-grid">
           <div class="beads-grid-item">
             <div class="centered-scroller">
+              <div>
               <svg id="tile-svg" class="beads-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
-                <!-- width and height 99s will be adjusted dynamically, above and below -->
+                <!-- x, y, width, and height values will be adjusted dynamically, above and below -->
                 <defs>
                   <clipPath id="clip">
-                    <rect id="clip-rect" width="99" height="99" />
+                    <rect id="clip-rect" x="0" y="0" width="99" height="99" />
                   </clipPath>
                 </defs>
                 <g id="tile-group" clip-path="url(#clip)" >
+                  <rect id="tile-bkgd" x="0" y="0" width="99" height="99" stroke="none" />
                   <!-- bead circles added here dynamically-->
                 </g>
               </svg>
+              </div>
             </div>
           </div>
           <div id="tile-controls" class="right-justify">

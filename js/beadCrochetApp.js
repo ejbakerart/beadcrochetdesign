@@ -390,13 +390,22 @@ function createTile()
 
   const svg = document .getElementById( 'tile-svg' );
   svg .style .width = `${(currentRepeat+1) * tileBeadDiameter}px`;
-  const width = (currentRepeat+3)*beadDiameter;
-  const height = (tileHeight*lineHeight+2)*beadDiameter;
-  const viewboxArray = [ 1.5, 1.0, width, height ];
+  const x = 1.5;
+  const y = 1.0;
+  const width = currentRepeat*beadDiameter;
+  const height = (tileHeight*lineHeight)*beadDiameter;
+  const viewboxArray = [ x, y, width, height ];
   svg .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   const rect = document .getElementById( 'clip-rect' );
+  rect .setAttribute( 'x', x );
+  rect .setAttribute( 'y', y );
   rect .setAttribute( 'width', width );
   rect .setAttribute( 'height', height );
+  const bkgdRect = document .getElementById( 'tile-bkgd' );
+  bkgdRect .setAttribute( 'x', x );
+  bkgdRect .setAttribute( 'y', y );
+  bkgdRect .setAttribute( 'width', width );
+  bkgdRect .setAttribute( 'height', height );
   const group = document .getElementById( "tile-group" );
   createBeadPlane( group, false, tileHeight+1, currentRepeat+1 );
   recomputeBookIndices( group );
@@ -705,7 +714,8 @@ const setBorderColor = color =>
 const setBackgroundColor = color =>
 {
   document .getElementById( 'bkgd-color' ) .style .backgroundColor = color;
-  document .querySelectorAll( "svg" ) .forEach( el => el .style[ "background-color" ] = color );
+  document .querySelectorAll( ".beads-bkgd" ) .forEach( el => el .style[ "background-color" ] = color );
+  document .getElementById( 'tile-bkgd' ) .setAttribute( 'fill', color );
 }
   
 function setup()
