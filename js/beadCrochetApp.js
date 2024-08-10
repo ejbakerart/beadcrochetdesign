@@ -9,9 +9,6 @@ colorElement.classList .add( 'selected-color' );
 
 let colorPickerColor = "#257b98"; //gets set by the interactive color picker.
 
-let beadBackground = '#cccccc';
-let beadBorderColor = 'grey';
-let beadBorderWidth = '0.06';
 let pixelsPerBead = 26; // for image output
 
 let currentCircum = 7;
@@ -704,19 +701,6 @@ async function exportFile( contents )
   // Close the file and write the contents to disk.
   await writable.close();
 }
-
-const setBorderColor = color =>
-{
-  document .getElementById( 'border-color' ) .style .backgroundColor = color;
-  document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke', color ) );
-}
-
-const setBackgroundColor = color =>
-{
-  document .getElementById( 'bkgd-color' ) .style .backgroundColor = color;
-  document .querySelectorAll( ".beads-bkgd" ) .forEach( el => el .style[ "background-color" ] = color );
-  document .getElementById( 'tile-bkgd' ) .setAttribute( 'fill', color );
-}
   
 function setup()
 {
@@ -737,12 +721,45 @@ function setup()
   const tileDialog = document.getElementById( 'tile-backdrop' );
   tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
 
+  let input;
+  
+  let beadBorderColor = '#808080';
+  const setBorderColor = color => 
+  {
+    beadBorderColor = color; // need this for setBorderWidth below
+    document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke', color ) );
+  }
+  input = document .getElementById( 'border-color' );
+  input .setAttribute( 'value', beadBorderColor );
+  input .addEventListener( "input", event => setBorderColor( event.target.value ) );
   setBorderColor( beadBorderColor );
-  setBackgroundColor( beadBackground );
-  document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke-width', beadBorderWidth ) );
 
-  document .getElementById( "set-border-color" ) .addEventListener( 'click', () => setBorderColor( colorClass ) );
-  document .getElementById( "set-bkgd-color" ) .addEventListener( 'click', () => setBackgroundColor( colorClass ) );
+  const beadBackground = '#cccccc';
+  const setBackgroundColor = color =>
+  {
+    document .querySelectorAll( ".beads-bkgd" ) .forEach( el => el .style[ "background-color" ] = color );
+    document .getElementById( 'tile-bkgd' ) .setAttribute( 'fill', color );
+  }
+  input = document .getElementById( 'background-color' );
+  input .setAttribute( 'value', beadBackground );
+  input .addEventListener( "input", event => setBackgroundColor( event.target.value ) );
+  setBackgroundColor( beadBackground );
+
+  document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
+
+  const beadBorderWidth = '0.06';
+  const setBorderWidth = width => document .querySelectorAll( "svg" ) .forEach( el => {
+    if ( width === 'none' )
+      el .setAttribute( 'stroke', 'none' );
+    else {
+      el .setAttribute( 'stroke', beadBorderColor );
+      el .setAttribute( 'stroke-width', width );
+    }
+  } );
+  input = document .getElementById( 'border-width' );
+  input .setAttribute( 'value', beadBorderWidth );
+  input .addEventListener( "input", event => setBorderWidth( event.target.value ) );
+  setBorderWidth( beadBorderWidth );
 
   createBeadPlane( document .getElementById( "BPsvg" ),   true,  bpHeight, bpWidth );
   createBeadPlane( document .getElementById( "ROPEsvg" ), false, bpHeight, bpWidth );
@@ -751,11 +768,8 @@ function setup()
 
   saveToHistory();
 
-  const colorPickerElem = document .getElementById("color-picker");
-  colorPickerElem .addEventListener( "change", () => {
-    colorPickerColor = colorPickerElem .value;
-  } );
-
+  document .getElementById( "color-picker" ) .addEventListener( "change", event => { colorPickerColor = event.target.value; } );
+  
   // document.addEventListener("keyup", function(event) {
   //   if (event.keyCode === 13) { //Enter key is pressed
   //     update();

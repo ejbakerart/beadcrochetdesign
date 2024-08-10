@@ -282,11 +282,18 @@ body {
 
 #style-grid {
   display: grid;
-  grid-template-columns: 5rem min-content min-content 1fr;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2em;
 }
 
 #border-width {
   display: flex;
+}
+
+.style-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /*       vertical repeat        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */

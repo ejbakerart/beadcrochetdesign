@@ -151,18 +151,22 @@ description: Design Tool accompanying the book
     <fieldset id="style">
       <legend>Style</legend>
       <div id="style-grid">
-        <label>Border</label>
-        <span id="border-color" class="show-color" style="background-color:#cccccc;"></span>
-        <div>
-          <input type="button" id="set-border-color" value="Set"></input>
+        <div class="style-setting">
+          <label>Border</label>
+          <input type="color" id="border-color" >  
         </div>
-        <div id="border-width">
+        <div class="style-setting">
           <label>Width</label>
+          <select name="border-width" id="border-width">
+            <option value="none" >None</option> 
+            <option value="0.03" >Thin</option>      
+            <option value="0.06" selected >Medium</option>      
+            <option value="0.09" >Thick</option>      
+          </select>
         </div>
-        <label >Background</label>
-        <span id="bkgd-color" class="show-color" style="background-color:#cccccc;"></span>
-        <div>
-          <input type="button" id="set-bkgd-color" value="Set"></input>
+        <div class="style-setting">
+          <label >Background</label>
+          <input type="color" id="background-color" >  
         </div>
       </div>
     </fieldset>
