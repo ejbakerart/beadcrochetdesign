@@ -1,51 +1,28 @@
 //See beadCrochetAppNotes for an important note regarding parameters controlling the bead size on the screen.
 
+// utilities
 import { openFile, saveFileAs } from './files.js';
 import { generateImageBlobFromSVG } from './images.js';
+import { paintRepeatColors, paintBeads, lcm, computeBookIndex, calculateNumRows, recomputeBookIndices } from './utilities.js';
 
-let colorElement = document .querySelector( '.select-color' ); // returns the first
-let colorClass = colorElement.style[ 'background-color' ];
-colorElement.classList .add( 'selected-color' );
+// state management
+import { currentCircum, currentRepeat, repeatColors, spin_offset,
+  setState, updateCircumference, updateRepeat, traverseRepeat, advanceSpin, toggleRepeatLock } from './repeat.js';
+import { currentColor } from './colors.js';
+import { redo, undo, saveToHistory } from './undoredo.js';
 
-let colorPickerColor = "#257b98"; //gets set by the interactive color picker.
+// import just to trigger side-effects (register the listeners)
+import './twist.js';
+import './beadstyles.js';
 
-let pixelsPerBead = 26; // for image output
+const bpWidth = 38;
+const bpHeight = 56; // NOTE: THIS MUST BE AN EVEN NUMBER OR POSSIBLY BUGS???
 
-let currentCircum = 7;
-let currentRepeat = 57;
-let lastRepeat = 0;
-let lastCircum = 0;
-let currentTwist = 0;
+const beadDiameter = 1; // approx 2.8px/mm, so a 2mm bead in SVG
+const tileBeadDiameter = 10;
+const lineHeight = Math.sqrt( 3 ) / 2;
 
-const colorpicker = ["white","white","white","white","white","white","white","white"];
-let nextColor = -1; //the index into colorpicker arrays -- gets initialized to 0 first time it is used
-const maxColors = colorpicker.length;
-
-//UNDO/REDO variables
-let remaining_undos = -1; //keeps track of how many times we can undo -- will be incremented to 0 when start state is saved
-let remaining_redos = 0; //keeps track of how many times we can redo -- will be incremented to 1 when first undo occurs
-const history_limit = 26;  //note: we can save up to history_limit-1 new states because the original state is the first push
-let repeatHistory = []; //will hold the repeat arrays for prior states for undo/redo. Implented as a circular array
-let historyIndex = history_limit - 1; //will hold the current index into the repeatHistory array, used for undo/redo
-                                  //Because circular array, in first call to saveToHistory, this will be advanced to position 0
-//The number of UNDO or REDO actions the user can take is limited by the history_limit variable (it is one less than it)
-const bpWidth = 38;//38
-const bpHeight = 56;//62  NOTE: THIS MUST BE AN EVEN NUMBER OR POSSIBLY BUGS???
-const minCircum = 3; //the minimum circumference choice allowed
-const maxCircum = 20; //the maximum circumference choice allowed
-const minRepeat = 2; //the minimum length of the repeat allowed
-const maxRepeat = 1000; //the maximum length of the repeat allowed.
-
-const vrpBeadDiameter = 20;
-
-// This should be the source of truth, not the circles in the VR!
-let repeatColors = []; //this is the most important array for representing the state of the repeat.
-
-let spin_offset = 0;
-
-let repeatLocked = false; //true if the user locks the repeat length with the lock button
-
-// remember to put in an extra blank bead at the beginning of patterns, since we don't use the 0th element
+// remember to put in the circumference at the beginning of patterns
 const builtInDesigns = {
   mobius6             : [ 6, "black", "white", "white","white", "white", "white","white", "white", "white", "white"],
   hexagonalgrid7      : [ 7, "blue","blue","blue","blue","blue","red","red","red","blue","blue","blue","blue","red","red","red","red","blue","blue","blue","red","red","red","red","red","white","white","white","red","red","red","red","white","white","white","white","red","red","red","white","white","white","white","white","blue","blue","blue","white","white","white","white","blue","blue","blue","blue","white","white","white"],
@@ -55,186 +32,7 @@ const builtInDesigns = {
   hexagonalgrid10     : [10, 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'green', 'green', 'green', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green', 'green', 'green', 'white', 'white', 'white', 'white', 'white', 'green', 'green', 'green','green', 'green', 'green','white', 'white', 'white', 'white','green','green','green', 'green','green'],
 }
 
-const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
-
-/* if one of the color choices is clicked on, change colorClass to its color */
-const useColor = ( el ) =>
-{
-  colorClass = el.style[ 'background-color' ];
-  colorElement.classList .remove( 'selected-color' );
-  el.classList .add( 'selected-color' );
-  colorElement = el;
-}
-document.querySelectorAll( ".select-color") .forEach( el => el .addEventListener( "click", () => useColor( el ) ) );
-
-
-
-//save the current state to the history array for use by undo/redo. The index to the new slot gets advanced
-//or decremented (as needed) by a separate function called here  -- adjust_circular_buffer_index()
-function saveToHistory()
-{
-  // TODO: make an object, not this array
-  const a = [ currentCircum, ...repeatColors ]; //save the circumference in the 0th element of a new array, since we don't use that slot for the repeat data
-
-  historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit); //advance the historyIndex by 1 to a new slot
-  repeatHistory[historyIndex] = a; //save this new array in this next spot in the repeatHistory array
-  remaining_undos++;
-  if (remaining_undos >= history_limit) {//stop accruing potential undos when we reach the global limit
-    remaining_undos = history_limit-1;
-  }
-}
-
-// This function captures the shape of the repeat, and makes callbacks for each bead
-//  and at the end of each row, so we don't have to duplicate this logic, or worse,
-//  implement it differently to find row ends.
-function traverseRepeat( visitBead, endRow )
-{
-  let indented_row = false;
-  let beads_remaining_in_row = currentCircum + 1;
-  // NOTE! Indices here are zero-based!
-  for (let index = 0; index < currentRepeat; index++) {
-    visitBead( index );
-    --beads_remaining_in_row;
-    if ( beads_remaining_in_row === 0 ) {
-      // counting beads from the bottom up
-      indented_row = ! indented_row;
-      endRow( index, indented_row ); // index is last bead of the row being completed
-      if ( indented_row ) {
-        beads_remaining_in_row = currentCircum;
-      } else {
-        beads_remaining_in_row = currentCircum + 1;
-      }
-    }
-  }
-}
-
-// This is called when the repeat value is changed by the user.
-function updateRepeat()
-{
-  const repeat = document.getElementById('fREPEAT');
-  if ((repeat.value > maxRepeat) || (repeat.value < minRepeat)) {
-    alert('Repeat length must be between ' + minRepeat + ' and ' + maxRepeat);
-    repeat.value = currentRepeat;
-    return 0;
-  }
-  lastRepeat = currentRepeat;
-  currentRepeat = Number(repeat.value);
-  if (currentRepeat > lastRepeat) {
-    // got bigger
-    const length = currentRepeat - lastRepeat;
-    const insert = Array.from( { length }, (_, i) => 'white' ) ;
-    refreshEverything( [ currentRepeat, ...repeatColors, ...insert ], true );
-  }
-  else if (currentRepeat < lastRepeat) {
-    // got smaller
-    refreshEverything( [ currentRepeat, ...repeatColors.slice( 0, currentRepeat ) ], true );
-  }
-}
-
-function getRepeatRowEnds()
-{
-  const rowEnds = [];
-  traverseRepeat( 
-    () => {}, // no-op per bead
-    ( lastIndex ) => { // finishing a row
-      rowEnds .push( lastIndex );
-    }
-  )
-  return rowEnds;
-}
-
-function updateCircumference()
-{
-  console.log( 'updateCircumference %%%%%%%%%%%%%%%%%%%%%%%%%%%%%' );
-
-  const circum = document.getElementById('fCircumference');
-
-  if ((circum.value > maxCircum) || (circum.value < minCircum)) {
-    alert('Circumference must be between ' + minCircum + ' and ' + maxCircum);
-    circum.value = currentCircum;
-    return 0;
-  }
-  lastRepeat = currentRepeat;
-  lastCircum = currentCircum;
-  const nextCircum = Number(circum.value);
-  if ( lastCircum == nextCircum )
-    return;
-
-  //Note that we essentially allow only one change at a time -- you can't change both repeat
-  //circumference at the same time, and circumference changes take precedence over repeat changes,
-  //since changes the circumference also changes the repeat, but not vice versa.
-  if (repeatLocked) {
-    currentCircum = nextCircum;
-    const tempRepeat = [ ...repeatColors.slice( 0, currentRepeat ) ];
-    currentRepeat = tempRepeat.length;
-    refreshEverything( [ currentRepeat, ...tempRepeat ], true );  
-  }
-  else {
-    const delta = nextCircum - lastCircum;
-    const tempRepeat = [ ...repeatColors ];
-
-    if ( delta > 0 ) {
-      // If the circumference changes, I've made a design choice to also change the length of the repeat,
-      // so as not to change the height just because we are changing width.
-      let rowEnds = getRepeatRowEnds();
-      const insert = Array.from( { length: delta }, (_, i) => 'white' ) ;
-      // go backwards so we don't need to keep recomputing indices
-      for ( const rowEnd of rowEnds .toReversed() ) {
-        tempRepeat .splice( rowEnd+1, 0, ...insert ); // insert some white beads at each row end
-      }
-    } else if ( delta < 0 ) {
-      // Remove one column at a time, and recompute rowEnds, so that we handle
-      //   the top short row correctly... it becomes a row end appropriately.
-      // This is a bit inefficient, but MUCH easier to reason about.
-      for ( let index = 0; index < -delta; index++ ) {
-        let rowEnds = getRepeatRowEnds();
-        // go backwards so we don't need to keep recomputing indices
-        for ( const rowEnd of rowEnds .toReversed() ) {
-          tempRepeat .splice( rowEnd, 1 ); // remove the bead at the row end
-        }
-        // maintain these so that getRepeatRowEnds works; they'll be overwritten after this loop equivalently
-        currentRepeat = tempRepeat.length;
-        --currentCircum;
-      }
-    }
-    currentCircum = nextCircum;
-    currentRepeat = tempRepeat.length;
-    document .getElementById( 'fREPEAT' ) .value = currentRepeat;
-    refreshEverything( [ currentRepeat, ...tempRepeat ], true);
-  }
-}
-
-function updateTwist()
-{
-  const twist = document.getElementById('fTwist');
-  if (twist != currentTwist) {//twist value changed
-    //if ((twist > 30) || (twist < -30)) {
-    //alert('Twist must be between -30 and 30 degrees.');
-      if (twist.value > 30) {
-        twist.value = 30;
-      }
-      else if (twist.value < -30) {
-        twist.value = -30;
-      }
-    //console.log("twist is " + twist.value);
-    currentTwist = twist.value;
-    doTwist(currentTwist);
-  }
-}
-
-function commonRefresh()
-{
-  createRepeat();
-
-  rebuildColoredNumbers();
-
-  createTile();
-
-  recomputeBookIndices( document .getElementById( "BPsvg" ) );
-  recomputeBookIndices( document .getElementById( "ROPEsvg" ) );
-
-  reshapeRope();
-}
+// const ThanksMessage = "Written by Ellie Baker. Designed by Ellie Baker and Susan Goldstine. Many people helped and/or consulted on the development of this code. Ellie takes full responsibility for all atrocities and errors, but owes thanks to Michael Klugerman for extensive consulting on coding in Javascript and HTML, and Craig Kaplan who helped with an earlier version written in Processing. Thanks are also due to Sophie Sommer, Lila Masand, Mike Komosinski, and Christine Langston for coding help and other consulting."
 
 function rebuildColoredNumbers()
 {
@@ -264,48 +62,26 @@ function rebuildColoredNumbers()
   emitSpan();
 }
 
-function refreshEverything( colorArray, resetRedo )
+function refreshEverything( saveHistory )
 {
-  repeatColors = colorArray .slice( 1 );
-  if (resetRedo) { // not undoing or redoing
-    remaining_redos = 0;
+  document .getElementById( 'fCircumference' ) .value = currentCircum;
+  document .getElementById( 'fREPEAT' ) .value = currentRepeat;
+
+  if ( saveHistory ) { // not undoing or redoing
     saveToHistory();
   }
 
-  document .getElementById( "VRPsvg" )     .replaceChildren(); // remove the old circles
-  document .getElementById( "tile-group" ) .replaceChildren(); // remove the old circles
+  createRepeat();
 
-  spin_offset = 0; //reset the spin offset
+  rebuildColoredNumbers();
 
-  commonRefresh();
+  recomputeBookIndices( document .getElementById( "BPsvg" ), 0 );
+  recomputeBookIndices( document .getElementById( "ROPEsvg" ), 0 );
+
+  reshapeRope();
 
   // paint all beads with the new repeatColors
-  repeatColors .forEach( ( color, i ) => paintBeads( i+1, color ) );
-}
-
-//calculate and return the number of rows in a Repeat
-function calculateNumRows(c,r) {
-  var double_row_length = (c*2)+1;
-  var num_double_rows = (Math.floor(r/double_row_length));
-  var excess = (r%((2*c)+1));
-  //alert("excess: " + excess + " num_double_rows: " + num_double_rows + " double_row_length: " + double_row_length);
-  if (excess > 0) {
-    if (excess > (c+1))  {
-        return (num_double_rows*2) + 2;
-    }
-    else return (num_double_rows*2) + 1;
-    }
-  else return num_double_rows*2;
-}
-
-
-//Simulate twisting of the rope by rotating it according to the input angle
-function doTwist( angleInDegrees )
-{
-  if (angleInDegrees > 30) {
-    angleInDegrees = 30;
-  }
-  document .getElementById( 'ROPEsvg' ) .setAttribute( 'transform', `rotate(${angleInDegrees},19,24)` );
+  paintRepeatColors();
 }
 
 function reshapeRope()
@@ -317,28 +93,13 @@ function reshapeRope()
   // svgElem .style .width = currentCircum * beadDiameter * SOMETHING; // let's try it fixed-width first
 }
 
-//This function gets called when the `Color All` button is pushed.  It clears the colors from the beadplane and repeat.
-//It takes the repeat length as an input parameter.
-function handleColorAll()
-{
-  repeatColors .map( (v,i,a) => a[i] = colorClass );
-  saveToHistory();
-
-  paintAllBeads( colorClass );
-  remaining_redos = 0;
-}
-
-const lineHeight = Math.sqrt( 3 ) / 2;
-
-
 function beadColored( bookIndex )
 {
-  repeatColors[ bookIndex-1 ] = colorClass;
+  repeatColors[ bookIndex-1 ] = currentColor;
   saveToHistory();
 
-  paintBeads( bookIndex, colorClass );
+  paintBeads( bookIndex, currentColor );
   rebuildColoredNumbers();
-  remaining_redos = 0;
 }
 
 function createBeadPlane( parent, clickable, height, width )
@@ -356,29 +117,12 @@ function createBeadPlane( parent, clickable, height, width )
       newCircle.setAttribute( "col", j );
 
       if ( clickable ) { // only the beadplane is clickable
-        // row and column have no relevance here... just beadorder
-        newCircle.onclick = () => beadColored( computeBookIndex( i, j ) );
+        newCircle.onclick = () => beadColored( computeBookIndex( i, j, 0 ) );
       }
-      parent .appendChild(newCircle);
+      parent .appendChild( newCircle );
     }
   }
 }
-
-const lcm = ( num1, num2 ) =>
-{
-  let min = (num1 > num2) ? num1 : num2;
-
-  // while loop
-  while (true) {
-      if (min % num1 == 0 && min % num2 == 0) {
-          return min;
-      }
-      min++;
-  }
-}
-
-const beadDiameter = 1; // approx 2.8px/mm, so a 2mm bead in SVG
-const tileBeadDiameter = 10;
 
 function createTile()
 {
@@ -403,62 +147,22 @@ function createTile()
   bkgdRect .setAttribute( 'y', y );
   bkgdRect .setAttribute( 'width', width );
   bkgdRect .setAttribute( 'height', height );
+
   const group = document .getElementById( "tile-group" );
+  group .replaceChildren(); // remove the old circles
   createBeadPlane( group, false, tileHeight+1, currentRepeat+1 );
-  recomputeBookIndices( group );
-}
-
-function computeBookIndex( row, col )
-{
-  let x = currentCircum*(row-1) + Math.floor( ((row)/2+1) ) + spin_offset; //compute the offset in the repeat for the first bead in the row
-  let bead = 0;
-  for( let j=1; j<=col; j++ ) {
-    if ((x%currentRepeat) == 0) { //if finished repeat, set the repeat offset to r and reset r back to 1 for next iteration
-      bead = currentRepeat;
-      x=1;
-    }
-    else {//otherwise not finished with repeat, so set repeat offset to (x mod r) and just increment x for next iteration
-      bead = x % currentRepeat; // setrepeat offset for this bead
-      x++;
-    }
-  }
-  return bead;
-}
-
-function recomputeBookIndices( parent )
-{
-  for ( const circle of parent .children ) {
-    const row = Number( circle .getAttribute( "row" ) );
-    const col = Number( circle .getAttribute( "col" ) );
-    const index = computeBookIndex( row, col );
-    circle .removeAttribute( 'class' );
-    circle .classList .add( 'bookindex-' + index );
-  }
-}
-
-const paintBeads = ( bead, color ) =>
-{
-  for ( const circle of document .querySelectorAll( '.bookindex-'+bead ) ) {
-    circle .setAttribute( 'fill', color );
-  }
-}
-
-
-const paintAllBeads = ( color ) =>
-{
-  for (let index = 1; index <= currentRepeat; index++) {
-    paintBeads( index, color );
-  }
-  rebuildColoredNumbers();
+  recomputeBookIndices( group, 0 );
 }
 
 function createRepeat()
 {
+  const vrpBeadDiameter = 20; // pixels
   // beads are drawn with diameter 1.0 in SVG coordinates
   const height = lineHeight * calculateNumRows( currentCircum, currentRepeat );
   const viewboxArray = [ -0.2, -0.4, currentCircum + 1.4, height + 0.6 ];
 
   const svgElem = document .getElementById( 'VRPsvg' );
+  svgElem .replaceChildren(); // remove the old circles
   svgElem .setAttribute( 'viewBox', viewboxArray .join( ' ' ) );
   svgElem .style .width = `${(currentCircum+1) * vrpBeadDiameter}px`; // this determines the actual pixel scale of the repeat
 
@@ -491,30 +195,10 @@ function createRepeat()
   );
 }
 
-//called when the user pushes the ADD button (which means add the color picker color to the palette)
-function addToPalette(color) {
-  if (nextColor == maxColors-1) {
-      nextColor = 0;
-    }
-    else {
-      nextColor++;
-    }
-    //alert ("add to palette " + color + " in slot " + nextColor);
-    var elem = document.getElementById('color-' + nextColor);
-    elem.style["background-color"]=color;
-    colorpicker[nextColor] = color;
-    useColor( elem );
-}
-
 function loadDesign( design )
 {
-  lastRepeat = currentRepeat;
-  lastCircum = currentCircum;
-  currentRepeat = design.length - 1;
-  currentCircum = Number(design[0]);
-  document.getElementById("fREPEAT") .value = currentRepeat;
-  document.getElementById("fCircumference") .value = currentCircum;
-  refreshEverything( design, true);
+  setState( design .slice( 1 ), Number(design[0]) );
+  refreshEverything( true );
 }
 
 function loadFile( file )
@@ -548,109 +232,24 @@ function loadSelectedSource()
   }
 }
 
-//called when the user presses the "UNDO" button.  Returns to the previous state of the repeat.
-//There are history_limit minus 1 possible undos.
-function undo() {
-  //console.log("in undo. historyIndex is " + historyIndex + "remaining_undos is " + remaining_undos + " remaining_redos is " + remaining_redos);
-  if (remaining_undos == 0) {
-    //console.log("out of undos");
-    return; //we're at the limit of possible undos, so nothing more to undo
-  }
-  historyIndex = adjust_circular_buffer_index(-1, historyIndex, history_limit);
-  //console.log("in undo. historyIndex adjusted to " + historyIndex);
-  const temp_array = repeatHistory[historyIndex];
-  const c = temp_array[0];
-  const r = temp_array.length - 1;
-  lastRepeat = currentRepeat; //Not sure what to be doing with these globals...???
-  lastCircum = currentCircum;
-  currentRepeat = r;
-  currentCircum = c;
-  const r_elem = document.getElementById("fREPEAT");
-  const c_elem = document.getElementById("fCircumference");
-  r_elem.value = r;
-  c_elem.value = c;
-  refreshEverything( temp_array, false);
-  remaining_undos--;
-  remaining_redos++;
-}
-
-//called when the user presses the redo button.  Redoes and Undo. Limited to redoing (history_limit - 1) undos.
-function redo() {
-  //console.log("in redo. historyIndex is " + historyIndex + "remaining_redos is " + remaining_redos);
-  if (remaining_redos <= 0) {
-    //console.log("out of redos");
-    return;
-  }
-  historyIndex = adjust_circular_buffer_index(1, historyIndex, history_limit);
-  //console.log("in redo. historyIndex adjusted to " + historyIndex);
-  const temp_array = repeatHistory[historyIndex];
-  const c = temp_array[0];
-  const r = temp_array.length - 1;
-  lastRepeat = currentRepeat; //Not sure what to be doing with these globals...???
-  lastCircum = currentCircum;
-  currentRepeat = r;
-  currentCircum = c;
-  const r_elem = document.getElementById("fREPEAT");
-  const c_elem = document.getElementById("fCircumference");
-  r_elem.value = r;
-  c_elem.value = c;
-  refreshEverything( temp_array, false);
-  remaining_undos++; //one more undo is now possible
-  remaining_redos--;
-}
-
-//Move the circular buffer index. Advance or decrement it depending on whether input x is positive or negative.
-//Assumes buffer is a one-D array with indices 0 to buffer_limit minus 1.
-//If called with an increment or decrement > 1, it uses a recursive call, but in practice here I am
-//not ever calling it with anything other than +1 or -1.  A useful routine for the toolbox.
-function adjust_circular_buffer_index(x, current_index, buffer_limit) {
-  var index;
-  var i;
-  //console.log("in call to adjust_circular_buffer_index with x " + x + " current_index " + current_index + " limit " + buffer_limit);
-  if ((current_index < 0) || (current_index == buffer_limit)) {
-    //console.log("called adjust_circular_buffer_index with invalid current index of " + current_index);
-    return;
-  }
-  if (x == 0) {
-    return(current_index);
-  }
-  if (x == 1) { //we are advancing the index by 1
-    return((current_index + 1) % buffer_limit);
-  }
-  if (x == -1) { //we are decrementing the index by 1
-    if (current_index == 0){
-      return (buffer_limit-1);
-    }
-     else {
-       return (current_index - 1);
-     }
-  }
-  else if (x > 1) {
-    return (adjust_circular_buffer_index(x-1, current_index+1, buffer_limit));
-  }
-  else if (x < 1) {
-    return (adjust_circular_buffer_index(x+1, current_index-1, buffer_limit));
-  }
-}
-
-function lockbuttonToggle() {
-  //alert ("in lock toggle");
-  var elem = document.getElementById("lockButton");
-  if (elem.value == "Lock") {
-    elem.value = "Unlock"; //toggle the button label to unlock, since we are locking
-    repeatLocked = true;
-  }
-  else if (elem.value == "Unlock") {
-    elem.value = "Lock"; //toggle the button lable to lock, since we are unlocking
-    repeatLocked = false;
-  }
-}
-
 function handleRopeSpin()
 {
-  spin_offset = (spin_offset + 1) % currentRepeat; //advance the offset in the repeat by one to simulate spinning
-  recomputeBookIndices( document .getElementById( "ROPEsvg" ) );
-  repeatColors .forEach( ( color, i ) => paintBeads( i+1, color ) );
+  advanceSpin();
+  recomputeBookIndices( document .getElementById( "ROPEsvg" ), spin_offset );
+  paintRepeatColors();
+}
+
+//This function gets called when the `Color All` button is pushed.  It clears the colors from the beadplane and repeat.
+//It takes the repeat length as an input parameter.
+function handleColorAll()
+{
+  repeatColors .map( (v,i,a) => a[i] = currentColor );
+  saveToHistory();
+
+  for (let index = 1; index <= currentRepeat; index++) {
+    paintBeads( index, currentColor );
+  }
+  rebuildColoredNumbers();
 }
 
 //CURRENTLY USING THIS FUNCTION TO GET THE SAVE FILE WINDOW TO COME UP, BUT IT ONLY WORKS ON CHROME AND A FEW OTHER BROWSERS
@@ -681,7 +280,6 @@ async function handleSave()
   await writable.close(); 
 }
 
-
 async function exportFile( contents )
 {
   const options = {
@@ -701,120 +299,85 @@ async function exportFile( contents )
   // Close the file and write the contents to disk.
   await writable.close();
 }
-  
-function setup()
+
+const showTileDialog = () =>
 {
-  // No more hard-coding in the HTML
-  document .getElementById( 'fREPEAT' )        .setAttribute( 'value', currentRepeat );
-  document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
-
-  for (let index = 0; index < currentRepeat; index++) {
-    repeatColors .push( "white" );
-  }
-
-  const aboutDialog = document.getElementById('about');
-  aboutDialog .addEventListener( 'click', () => aboutDialog .classList .add( 'hidden' ) );
-
-  const helpDialog = document.getElementById('help');
-  helpDialog .addEventListener( 'click', () => helpDialog .classList .add( 'hidden' ) );
-
-  const tileDialog = document.getElementById( 'tile-backdrop' );
-  tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
-
-  let input;
-  
-  let beadBorderColor = '#808080';
-  const setBorderColor = color => 
-  {
-    beadBorderColor = color; // need this for setBorderWidth below
-    document .querySelectorAll( "svg" ) .forEach( el => el .setAttribute( 'stroke', color ) );
-  }
-  input = document .getElementById( 'border-color' );
-  input .setAttribute( 'value', beadBorderColor );
-  input .addEventListener( "input", event => setBorderColor( event.target.value ) );
-  setBorderColor( beadBorderColor );
-
-  const beadBackground = '#cccccc';
-  const setBackgroundColor = color =>
-  {
-    document .querySelectorAll( ".beads-bkgd" ) .forEach( el => el .style[ "background-color" ] = color );
-    document .getElementById( 'tile-bkgd' ) .setAttribute( 'fill', color );
-  }
-  input = document .getElementById( 'background-color' );
-  input .setAttribute( 'value', beadBackground );
-  input .addEventListener( "input", event => setBackgroundColor( event.target.value ) );
-  setBackgroundColor( beadBackground );
-
-  document .getElementById( 'fCircumference' ) .setAttribute( 'value', currentCircum );
-
-  const beadBorderWidth = '0.06';
-  const setBorderWidth = width => document .querySelectorAll( "svg" ) .forEach( el => {
-    if ( width === 'none' )
-      el .setAttribute( 'stroke', 'none' );
-    else {
-      el .setAttribute( 'stroke', beadBorderColor );
-      el .setAttribute( 'stroke-width', width );
-    }
-  } );
-  input = document .getElementById( 'border-width' );
-  input .setAttribute( 'value', beadBorderWidth );
-  input .addEventListener( "input", event => setBorderWidth( event.target.value ) );
-  setBorderWidth( beadBorderWidth );
-
-  createBeadPlane( document .getElementById( "BPsvg" ),   true,  bpHeight, bpWidth );
-  createBeadPlane( document .getElementById( "ROPEsvg" ), false, bpHeight, bpWidth );
-
-  commonRefresh();
-
-  saveToHistory();
-
-  document .getElementById( "color-picker" ) .addEventListener( "change", event => { colorPickerColor = event.target.value; } );
-  
-  // document.addEventListener("keyup", function(event) {
-  //   if (event.keyCode === 13) { //Enter key is pressed
-  //     update();
-  //   }
-  // });
-
-  document .getElementById( 'export-vrp' ) .addEventListener( 'click', () => {
-    exportFile( document .getElementById( 'VRPsvg' ) .outerHTML );
-  } );
-  document .getElementById( 'export-svg' ) .addEventListener( 'click', () => {
-    exportFile( document .getElementById( 'BPsvg' ) .outerHTML );
-  } );
-  document .getElementById( 'export-tile' ) .addEventListener( 'click', () => {
-    exportFile( document .getElementById( 'tile-svg' ) .outerHTML );
-  } );
-  document .getElementById( 'export-tile-png' ) .addEventListener( 'click', () => {
-    const svgText = document .getElementById( 'tile-svg' ) .outerHTML;
-    generateImageBlobFromSVG( svgText, currentRepeat*beadDiameter*pixelsPerBead, 'image/png' )
-      .then( blob => saveFileAs( 'svg2png.png', blob ) )
-      .catch( error => console.log( error ) );
-    ;
-  } );
-
-  document .getElementById( 'tile-button' ) .addEventListener( 'click', () => tileDialog .classList .remove( 'hidden' ) );
-
-  document .getElementById( 'undo' ) .addEventListener( 'click', undo );
-  document .getElementById( 'redo' ) .addEventListener( 'click', redo );
-
-  document .getElementById( 'about-button' ) .addEventListener( 'click', () => aboutDialog .classList .remove( 'hidden' ) );
-  document .getElementById( 'help-button'  ) .addEventListener( 'click', () => helpDialog  .classList .remove( 'hidden' ) );
-
-  document .getElementById( 'add-color' ) .addEventListener( 'click', () => addToPalette(colorPickerColor) );
-  document .getElementById( 'color-all' ) .addEventListener( 'click', handleColorAll );
-
-  document .getElementById( 'open-button' ) .addEventListener( 'click', loadSelectedSource );
-  document .getElementById( 'save-button' ) .addEventListener( 'click', handleSave );
-
-  document .getElementById( 'lockButton' ) .addEventListener( 'click', lockbuttonToggle );
-
-  document .getElementById( 'spin-button' ) .addEventListener( 'click', handleRopeSpin );
-
-  // change listeners for number fields, not clicks
-  document .getElementById( 'fTwist' )         .addEventListener( 'change', updateTwist );
-  document .getElementById( 'fREPEAT' )        .addEventListener( 'change', updateRepeat );
-  document .getElementById( 'fCircumference' ) .addEventListener( 'change', updateCircumference );
+  createTile();
+  paintRepeatColors();
+  tileDialog .classList .remove( 'hidden' );
 }
+  
 
-setup();
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//     Here is the main state initialization
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+createBeadPlane( document .getElementById( "BPsvg" ),   true,  bpHeight, bpWidth );
+createBeadPlane( document .getElementById( "ROPEsvg" ), false, bpHeight, bpWidth );
+
+const temp_array = [];
+for (let index = 0; index < currentRepeat; index++) {
+  temp_array .push( "white" );
+}
+setState( temp_array, currentCircum );
+refreshEverything( true );
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//   The rest is all side-effects, largely registering event listeners
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+const aboutDialog = document.getElementById('about');
+aboutDialog .addEventListener( 'click', () => aboutDialog .classList .add( 'hidden' ) );
+
+const helpDialog = document.getElementById('help');
+helpDialog .addEventListener( 'click', () => helpDialog .classList .add( 'hidden' ) );
+
+const tileDialog = document.getElementById( 'tile-backdrop' );
+tileDialog .addEventListener( 'click', () => tileDialog .classList .add( 'hidden' ) );
+
+// document.addEventListener("keyup", function(event) {
+//   if (event.keyCode === 13) { //Enter key is pressed
+//     update();
+//   }
+// });
+
+document .getElementById( 'export-vrp' ) .addEventListener( 'click', () => {
+  exportFile( document .getElementById( 'VRPsvg' ) .outerHTML );
+} );
+document .getElementById( 'export-svg' ) .addEventListener( 'click', () => {
+  exportFile( document .getElementById( 'BPsvg' ) .outerHTML );
+} );
+document .getElementById( 'export-tile' ) .addEventListener( 'click', () => {
+  exportFile( document .getElementById( 'tile-svg' ) .outerHTML );
+} );
+
+document .getElementById( 'export-tile-png' ) .addEventListener( 'click', () => {
+  const pixelsPerBead = 26;
+  const svgText = document .getElementById( 'tile-svg' ) .outerHTML;
+  generateImageBlobFromSVG( svgText, currentRepeat*beadDiameter*pixelsPerBead, 'image/png' )
+    .then( blob => saveFileAs( 'svg2png.png', blob ) )
+    .catch( error => console.log( error ) );
+  ;
+} );
+
+document .getElementById( 'tile-button' ) .addEventListener( 'click', showTileDialog );
+
+document .getElementById( 'about-button' ) .addEventListener( 'click', () => aboutDialog .classList .remove( 'hidden' ) );
+document .getElementById( 'help-button'  ) .addEventListener( 'click', () => helpDialog  .classList .remove( 'hidden' ) );
+
+document .getElementById( 'open-button' ) .addEventListener( 'click', loadSelectedSource );
+document .getElementById( 'save-button' ) .addEventListener( 'click', handleSave );
+
+document .getElementById( 'spin-button' ) .addEventListener( 'click', handleRopeSpin );
+
+document .getElementById( 'color-all' ) .addEventListener( 'click', handleColorAll );
+
+document .getElementById( 'lockButton' ) .addEventListener( 'click', toggleRepeatLock );
+
+// change listeners for number fields, not clicks
+document .getElementById( 'fREPEAT' )        .addEventListener( 'change', () => { updateRepeat(),        refreshEverything( true ) } );
+document .getElementById( 'fCircumference' ) .addEventListener( 'change', () => { updateCircumference(), refreshEverything( true ) } );
+
+document .getElementById( 'undo' ) .addEventListener( 'click', () => { undo(), refreshEverything( false ) } );
+document .getElementById( 'redo' ) .addEventListener( 'click', () => { redo(), refreshEverything( false ) } );
