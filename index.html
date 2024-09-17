@@ -1,3 +1,8 @@
+---
+title: Crafting Conundrums
+book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'
+description: Design Tool accompanying the book
+---
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="css/beadCrochetApp.css">
@@ -9,40 +14,44 @@
     <meta property="og:type" content="website"/>
 
 
-    <title>Crafting Conundrums</title>
-    <meta property="og:site_name"  content="Crafting Conundrums"/>
-    <meta property="og:title"      content="Crafting Conundrums"/>
-    <meta property="twitter:title" content="Crafting Conundrums"/>
+    <title>{{ page.title }}</title>
+    <meta property="og:site_name"  content="{{ page.title }}"/>
+    <meta property="og:title"      content="{{ page.title }}"/>
+    <meta property="twitter:title" content="{{ page.title }}"/>
 
     <meta name="author" content="Ellie Baker"/>
     <meta name="author" content="Scott Vorthmann"/>
   
-    <meta name="description"             content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
-    <meta property="og:description"      content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
-    <meta property="twitter:description" content="Design Tool accompanying the book: 'Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist'"/>
+    <meta name="description"             content="{{ page.description }} {{ page.book }}"/>
+    <meta property="og:description"      content="{{ page.description }} {{ page.book }}"/>
+    <meta property="twitter:description" content="{{ page.description }} {{ page.book }}"/>
 
     <meta name="keywords" content="bead,crochet,book,art,mathematics,crafts,design,template,pattern"/>
     
-    <meta property="og:image"  content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
-    <meta name="twitter:image" content="https://ejbakerart.github.io/beadcrochetdesign/K20387_Cover_front4x6.jpg"/>
+    <meta property="og:image"  content="{{ site.github.url }}/K20387_Cover_front4x6.jpg"/>
+    <meta name="twitter:image" content="{{ site.github.url }}/K20387_Cover_front4x6.jpg"/>
     
-    <meta property="og:url" content="https://ejbakerart.github.io/beadcrochetdesign/"/>
-    <link rel="canonical"      href="https://ejbakerart.github.io/beadcrochetdesign/">
+    <meta property="og:url" content="{{ site.github.url }}"/>
+    <link rel="canonical"      href="{{ site.github.url }}">
 
 
     <script src="js/beadCrochetApp.js" type="module"></script>
+    <script>
+      console.log( "revision {{ site.github.build_revision }}" );
+      console.log( "source {{ site.github.repository_url }}" );
+    </script>
   </head>
 
 <body>
 
 <div id="navbar">
   <div id="title">
-    <h2>Crafting Conundrums</h2>
+    <h2>{{ page.title }}</h2>
     <h4>Bead Crochet Design Tool</h4>
   </div>
 
   <div id="file-operations">
-    <input type="button" value="Open"></input>
+    <input type="button" id="open-button" value="Open"></input>
     <select name="load-choices" id="load-choices">
       <option value="userfileplaceholder">-- local file --</option> 
       <option value="harlequin6">Harlequin 6</option>
@@ -55,6 +64,9 @@
     <input type="button" id="save-button" value="Save"></input>
   </div>
 
+  <div id="help-button">
+    <input type="button" value="Help"></input>
+  </div>
   <div id="about-button">
     <input type="button" value="About"></input>
   </div>
@@ -64,7 +76,6 @@
 
   <div id="controls-and-vrp">
 
-    <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
     <fieldset id="VRP">
       <legend>Vertical Repeat</legend>
       <div id="vrp-grid">
@@ -77,9 +88,11 @@
         </div>
         <div class="beads-grid-item">
           <div class="centered-scroller">
-            <svg id="VRPsvg" class="beads-svg" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg" ></svg>
+            <!-- create a spot for the vertical Repeat pattern, which we will later fill in dynamically -->
+            <svg id="VRPsvg" class="beads-svg beads-bkgd" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg" ></svg>
           </div>
         </div>
+        <div id="colored-numbers"></div>
         <div class="right-justify">
           <input type="button" id="export-vrp" value="Export SVG"></input>
         </div>
@@ -89,8 +102,8 @@
     <fieldset id="undo-redo">
       <legend>History</legend>
       <div class="right-justify">
-        <input type="button" value="Undo"></input>
-        <input type="button" value="Redo"></input>
+        <input type="button" id="undo" value="Undo"></input>
+        <input type="button" id="redo" value="Redo"></input>
       </div>
     </fieldset>
 
@@ -113,28 +126,50 @@
         <div class="select-color" style="background-color:#751aff;"></div>
         <div class="select-color" style="background-color:#99ebff;"></div>
         <div class="select-color" style="background-color:#8a8f8f;"></div>
-        <div class="select-color" id="color-0" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-1" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-2" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-3" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-4" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-5" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-6" style="background-color:#ffffff;"></div>
-        <div class="select-color" id="color-7" style="background-color:#ffffff;"></div>
+        <div class="select-color" id="color-0" style="background-color:white;"></div>
+        <div class="select-color" id="color-1" style="background-color:white;"></div>
+        <div class="select-color" id="color-2" style="background-color:white;"></div>
+        <div class="select-color" id="color-3" style="background-color:white;"></div>
+        <div class="select-color" id="color-4" style="background-color:white;"></div>
+        <div class="select-color" id="color-5" style="background-color:white;"></div>
+        <div class="select-color" id="color-6" style="background-color:white;"></div>
+        <div class="select-color" id="color-7" style="background-color:white;"></div>
       </div>
 
       <div id="color-actions">
         <div id="new-color">
-          <input type="button" value="Add Color"></input>
+          <input type="button" id="add-color" value="Add Color"></input>
           <input type="color" id="color-picker" value="#257b98">
         </div>
 
         <div id="bulk-actions">
-          <input type="button" value="Color All"></input>
+          <input type="button" id="color-all" value="Color All"></input>
         </div>
       </div>
     </fieldset>
 
+    <fieldset id="style">
+      <legend>Style</legend>
+      <div id="style-grid">
+        <div class="style-setting">
+          <label>Border</label>
+          <input type="color" id="border-color" >  
+        </div>
+        <div class="style-setting">
+          <label>Width</label>
+          <select name="border-width" id="border-width">
+            <option value="none" >None</option> 
+            <option value="0.03" >Thin</option>      
+            <option value="0.06" selected >Medium</option>      
+            <option value="0.09" >Thick</option>      
+          </select>
+        </div>
+        <div class="style-setting">
+          <label >Background</label>
+          <input type="color" id="background-color" >  
+        </div>
+      </div>
+    </fieldset>
 
   </div>
 
@@ -144,7 +179,7 @@
     <div id="bp-grid">
       <div class="beads-grid-item">
         <div class="centered-scroller">
-          <svg id="BPsvg" class="beads-svg" viewBox="0.8 0 39 49.5" xmlns="http://www.w3.org/2000/svg" ></svg>
+          <svg id="BPsvg" class="beads-svg beads-bkgd" viewBox="0.8 0 39 49.5" xmlns="http://www.w3.org/2000/svg" ></svg>
         </div>
       </div>
       <div id="bp-buttons" class="right-justify">
@@ -163,11 +198,11 @@
       <div id="rope-controls">
         <label for="fTwist">Twist</label>
         <input type="number" id="fTwist" name="fTwist" value="0">
-        <input type="button" value="Spin"></input>  
+        <input type="button" id="spin-button" value="Spin"></input>  
       </div>
       <div class="beads-grid-item">
         <div id="ROPE" class="centered-scroller">
-          <svg id="rope-svg" class="beads-svg" viewBox="17 3 7 42" xmlns="http://www.w3.org/2000/svg" >
+          <svg id="rope-svg" class="beads-svg beads-bkgd" viewBox="17 3 7 42" xmlns="http://www.w3.org/2000/svg" >
             <g id="ROPEsvg">
             </g>
           </svg>
@@ -185,17 +220,20 @@
         <div id="tile-grid">
           <div class="beads-grid-item">
             <div class="centered-scroller">
+              <div>
               <svg id="tile-svg" class="beads-svg" viewBox="0 0 99 99" xmlns="http://www.w3.org/2000/svg" >
-                <!-- width and height 99s will be adjusted dynamically, above and below -->
+                <!-- x, y, width, and height values will be adjusted dynamically, above and below -->
                 <defs>
                   <clipPath id="clip">
-                    <rect id="clip-rect" width="99" height="99" />
+                    <rect id="clip-rect" x="0" y="0" width="99" height="99" />
                   </clipPath>
                 </defs>
+                <rect id="tile-bkgd" x="0" y="0" width="99" height="99" stroke="none" />
                 <g id="tile-group" clip-path="url(#clip)" >
                   <!-- bead circles added here dynamically-->
                 </g>
               </svg>
+              </div>
             </div>
           </div>
           <div id="tile-controls" class="right-justify">
@@ -209,12 +247,12 @@
 
   <div class="backdrop" id="about">
     <div class="dialog">
-      <h1 id="about-title">About Crafting Conundrums</h1>
+      <h1 id="about-title">About {{ page.title }}</h1>
       <div id="about-grid">
         <div id="about-prose">
-          <p>This is a beta version of a Bead Crochet Design Tool. 
+          <p>This is a beta version of a bead crochet design tool. 
             It applies ideas from the design framework described in the book
-            <em>Crafting Conundrums: Puzzles and Patterns for the Bead Crochet Artist</em> 
+            <em>{{ page.book }}</em> 
             by Ellie Baker and Susan Goldstine.  
             It was created as a supplement to an upcoming new edition of the book. 
             The software was developed by Ellie Baker and Scott Vorthmann.   
@@ -227,6 +265,24 @@
           <a href="https://www.routledge.com/Crafting-Conundrums-Puzzles-and-Patterns-for-the-Bead-Crochet-Artist/Baker-Goldstine/p/book/9781466588486" target="_blank">
             <img src="K20387_Cover_front4x6.jpg" style="width:285px;height:405px;">
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="backdrop hidden" id="help">
+    <div class="dialog">
+      <h1 id="about-title">How to use {{ page.title }}</h1>
+      <div id="about-grid">
+        <div id="about-prose">
+          <p>
+            Click on any "bead" (circle) in the Vertical Repeat or Bead Plane to set its color,
+            using the currently highlighted swatch under Bead Color.   
+          </p>
+          <p>
+            All actions affecting the Repeat Length, Circumference, and
+            the bead colors in the Vertical Repeat can be undone (and redone), so feel free to play!   
+          </p>
         </div>
       </div>
     </div>
