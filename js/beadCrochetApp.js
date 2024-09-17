@@ -270,7 +270,7 @@ async function getNewFileHandle() {
 
 async function handleSave()
 {
-  const contents = JSON.stringify(repeatHistory[historyIndex]);
+  const contents = JSON.stringify( [ currentCircum, ...repeatColors ] );
   const fileHandle = await getNewFileHandle(); //THESE NEXT TWO LINES WORK GREAT BUT NEED HTTPS SECURITY and ONLY on Chrome and a few other browsers
   // Create a FileSystemWritableFileStream to write to.
   const writable = await fileHandle.createWritable();
